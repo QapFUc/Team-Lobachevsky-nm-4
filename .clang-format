@@ -1,0 +1,169 @@
+Language: Cpp
+Standard: c++20
+
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 160
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: Left
+AlignOperands: Align
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: Yes
+BraceWrapping:
+    AfterCaseLabel: false
+    # AfterControlStatement: MultiLine  # Looks like this option isn't needed
+    AfterEnum: false
+    AfterFunction: false
+    AfterNamespace: false
+    AfterStruct: false
+    AfterUnion: false
+    AfterExternBlock: false
+    BeforeCatch: false
+    BeforeElse: false
+    BeforeLambdaBody: false
+    BeforeWhile: false
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+    SplitEmptyNamespace: false
+BitFieldColonSpacing: Both
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: false
+CommentPragmas: '^#'
+CompactNamespaces: false
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: false
+DeriveLineEnding: true
+DerivePointerAlignment: false
+DisableFormat: false
+EmptyLineBeforeAccessModifier: LogicalBlock
+FixNamespaceComments: true
+ForEachMacros:
+  - foreach
+  - FOREACH_CHILD
+  - BOOST_FOREACH
+IncludeBlocks: Preserve
+# IncludeBlocks: Regroup
+# IncludeCategories:
+#   - Regex: '^<ext/.*\.h>'
+#     Priority: 2
+#     SortPriority: 0
+#     CaseSensitive: false
+#   - Regex: '^<.*\.h>'
+#     Priority: 1
+#     SortPriority: 0
+#     CaseSensitive: false
+#   - Regex: '^<.*'
+#     Priority: 2
+#     SortPriority: 0
+#     CaseSensitive: false
+#   - Regex: '.*'
+#     Priority: 3
+#     SortPriority: 0
+#     CaseSensitive: false
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+IndentCaseBlocks: false
+IndentCaseLabels: false
+IndentPPDirectives: AfterHash
+IndentWrappedFunctionNames: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+MacroBlockBegin: ''
+MacroBlockEnd: ''
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 1000000
+PenaltyIndentedWhitespace: 0
+PenaltyReturnTypeOnItsOwnLine: 200
+PointerAlignment: Left
+RawStringFormats:
+  - Language: Cpp
+    Delimiters:
+      - cc
+      - CC
+      - cpp
+      - Cpp
+      - CPP
+      - 'c++'
+      - 'C++'
+      - 'cxx'
+    CanonicalDelimiter: ''
+    BasedOnStyle: google
+  - Language: TextProto
+    Delimiters:
+      - pb
+      - PB
+      - proto
+      - PROTO
+    EnclosingFunctions:
+      - EqualsProto
+      - EquivToProto
+      - PARSE_PARTIAL_TEXT_PROTO
+      - PARSE_TEST_PROTO
+      - PARSE_TEXT_PROTO
+      - ParseTextOrDie
+      - ParseTextProtoOrDie
+      - ParseTestProto
+      - ParsePartialTestProto
+    CanonicalDelimiter: ''
+    BasedOnStyle: google
+# ReferenceAlignment: Left  # This option looks useful, uncomment for clang-format-13+ versions
+ReflowComments: false
+SortIncludes: true
+SortUsingDeclarations: false
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+StatementAttributeLikeMacros:
+  - Q_EMIT
+StatementMacros:
+  - Q_UNUSED
+  - QT_REQUIRE_VERSION
+TabWidth: 4
+UseCRLF: false

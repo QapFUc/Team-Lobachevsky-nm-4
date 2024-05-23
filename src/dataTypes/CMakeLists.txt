@@ -1,9 +1,9 @@
-set(TARGET_NAME "nm_spline_data_types")
+set(TARGET_NAME "nm_data_types")
 
 file(GLOB_RECURSE SRCS "*.[c|h]pp")
 
 add_library(${TARGET_NAME} STATIC ${SRCS})
-add_library(spline::dtypes ALIAS ${TARGET_NAME})
+add_library(nm::dtypes ALIAS ${TARGET_NAME})
 
 target_link_libraries(${TARGET_NAME} PRIVATE nm::logger)
 

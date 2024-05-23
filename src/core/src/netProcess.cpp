@@ -13,8 +13,8 @@ void NetPattern::addEmptySpace(const double& _x1, const double& _x2, const doubl
     auto func = [&](const size_t& i, const size_t& j, const double& x1, const double& x2, const double& y1, const double& y2) -> NodeType {
         if ((i > x1 * n) && (i < (width_mul - x2) * n) && (j > y1 * n) && (j < (1 - y2) * n))
             return NodeType::OUT;
-        else if ((i == x1 * n && (j >= y1 * n && j <= (1 - y1) * n)) || (i == (width_mul - x2) * n && (j >= y1 * n && j <= (1 - y1) * n)) ||
-                 (j == y1 * n && (i >= x1 * n && i <= (width_mul - x2) * n)) || (j == (1 - y2) * n && (i >= x1 * n && i <= (width_mul - x2) * n)))
+        else if (((i == x1 * n || (i == (width_mul - x2) * n)) && (j >= y1 * n && j <= (1 - y2) * n)) ||
+                 ((j == y1 * n || j == (1 - y2) * n) && (i >= x1 * n && i <= (width_mul - x2) * n)))
             return NodeType::BOUND;
         return NodeType::INNER;
     };
@@ -53,13 +53,11 @@ Net NetPattern::generateNet(const size_t& n, const double& x_start, const double
 
     for (size_t j = 0; j < height; ++j) {
         for (size_t i = 0; i < width; ++i) {
-            if (i == 0 || j == 0 || i == width - 1 || j == height - 1) {
+            NodeType nt = NetPattern::checkNodeType(i, j);
+            if ((i == 0 || j == 0 || i == width - 1 || j == height - 1) && (nt != NodeType::OUT)) {
                 nodes.push_back(Node{ i, j, NodeType::BOUND });
             } else {
-                NodeType nt = NetPattern::checkNodeType(i, j);
-                // if (nt != NodeType::OUT) {
                 nodes.push_back(Node{ i, j, nt });
-                // }
             }
         }
     }
@@ -103,7 +101,7 @@ NetPattern ImportNetPattern(const std::string& fname) {
 
 void NPTestFunc(const std::string& fname) {
     NetPattern pat = ImportNetPattern(fname);
-    Net net = pat.generateNet(40, 0, 0, 0.1, 0.1);
+    Net net = pat.generateNet(50, 0, 0, 0.1, 0.1);
 
     size_t j = net.nodes[0].j;
     for (size_t k = 0; k < net.nodes.size(); ++k) {

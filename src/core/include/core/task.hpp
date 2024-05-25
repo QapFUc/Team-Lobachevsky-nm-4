@@ -9,13 +9,13 @@
 #include "dataTypes/config.hpp"
 
 class DirichletTask {
-    std::function<double(double, double)> fBoundary;
-    std::function<double(double, double)> fRhs;
-    std::vector<double> lsmatrix;
-    std::vector<double> lsrhs;
-    std::vector<double> solution;
-    Net net;
-    Config cfg;
+    std::function<double(double, double)> fBoundary; // Граничные условия все
+    std::function<double(double, double)> fRhs;  // Неоднородность 
+    std::vector<double> lsmatrix; // матрица (то что осталось)
+    std::vector<double> lsrhs; // значение функции 
+    std::vector<double> solution; // само решение готовое
+    Net net; // сетка
+    Config cfg; 
     MethodInterface method;
 public:
     DirichletTask() = default;

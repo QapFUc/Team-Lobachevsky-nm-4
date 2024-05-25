@@ -9,7 +9,10 @@ struct MethodConfig {
     std::vector<double> startX;
     double tolerance;
     size_t matrix_width;
+    size_t Max_N = 0;
 };
+
+struct SimpleIterMethodConfig : MethodConfig {};
 
 struct Config {
     double CountCutX = .0;

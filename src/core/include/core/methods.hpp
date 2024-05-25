@@ -5,10 +5,10 @@
 class MethodInterface {
     std::vector<double> matrix;
     std::vector<double> rhs;
-    std::vector<double> var;
+    double tolerance;
 public:
     MethodInterface();
-    MethodInterface(std::vector<double> m, std::vector<double> rhs);
+    MethodInterface(std::vector<double> m, std::vector<double> rhs, const double& tolerance);
 
     virtual std::vector<double> eval();
 };

@@ -16,6 +16,7 @@
 #include <qcombobox.h>
 #include <qpushbutton.h>
 #include <signal.h>
+#include "dataTypes/config.hpp"
 
 class Widget : public QWidget {
     Q_OBJECT
@@ -29,7 +30,7 @@ public:
     void CreateGraphs();
 private slots:
 
-    void onClick();
+    void SendDatabtnClick();
 
 private:
     QTabWidget* tabWidget;
@@ -43,6 +44,8 @@ private:
     QLineEdit* InputOmega;
     QComboBox* InputTask;
     QPushButton* SendDatabtn;
+
+    Config config;
 
 
     QWidget* tab2;

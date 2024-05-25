@@ -1,13 +1,13 @@
-set(TARGET_NAME "nm_spline_core")
+set(TARGET_NAME "nm_core")
 
 file(GLOB_RECURSE SRCS "*.[c|h]pp")
 
 add_library(${TARGET_NAME} STATIC ${SRCS})
-add_library(spline::core ALIAS ${TARGET_NAME})
+add_library(nm::core ALIAS ${TARGET_NAME})
 
 target_link_libraries(${TARGET_NAME} PRIVATE 
     nm::logger
-    spline::dtypes
+    nm::dtypes
     nm::prof
 )
 

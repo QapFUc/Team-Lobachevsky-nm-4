@@ -19,7 +19,7 @@ struct Node {
 };
 
 struct Net {
-    std::vector<Node> nodes;
+    std::vector<std::vector<NodeType>> nodes;
     double x_start;
     double y_start;
     double step_x;

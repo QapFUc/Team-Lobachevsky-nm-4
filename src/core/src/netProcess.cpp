@@ -49,16 +49,19 @@ Net NetPattern::generateNet(const size_t& n, const double& x_start, const double
     this->n = n;
     size_t width = this->n * width_mul;
     size_t height = this->n;
-    std::vector<Node> nodes;
+    std::vector<std::vector<NodeType>> nodes(width);
 
-    for (size_t j = 0; j < height; ++j) {
-        for (size_t i = 0; i < width; ++i) {
+    for (size_t i = 0; i < width; ++i) {
+        std::vector<NodeType> col(height);
+        for (size_t j = 0; j < height; ++j) {
             NodeType nt = NetPattern::checkNodeType(i, j);
             if ((i == 0 || j == 0 || i == width - 1 || j == height - 1) && (nt != NodeType::OUT)) {
-                nodes.push_back(Node{ i, j, NodeType::BOUND });
+                col[j] = NodeType::BOUND;
             } else {
-                nodes.push_back(Node{ i, j, nt });
+                col[j] = nt;
             }
+
+            nodes[i] = col;
         }
     }
 
@@ -103,18 +106,16 @@ void NPTestFunc(const std::string& fname) {
     NetPattern pat = ImportNetPattern(fname);
     Net net = pat.generateNet(50, 0, 0, 0.1, 0.1);
 
-    size_t j = net.nodes[0].j;
-    for (size_t k = 0; k < net.nodes.size(); ++k) {
-        if (j != net.nodes[k].j) {
-            std::cout << '\n';
-            j = net.nodes[k].j;
+    for (size_t j = 0; j < net.nodes[0].size(); ++j) {
+        for (size_t i = 0; i < net.nodes.size(); ++i) {
+            if (net.nodes[i][j] == NodeType::BOUND) {
+                std::cout << 'o';
+            } else if (net.nodes[i][j] == NodeType::INNER) {
+                std::cout << 'x';
+            } else {
+                std::cout << ' ';
+            }
         }
-
-        if (net.nodes[k].type == NodeType::BOUND)
-            std::cout << 'o';
-        else if (net.nodes[k].type == NodeType::INNER)
-            std::cout << 'x';
-        else
-            std::cout << ' ';
+        std::cout << '\n';
     }
 }

@@ -1,4 +1,4 @@
-set(TARGET_NAME "nm_spline_data_types")
+set(TARGET_NAME "nm_data_types")
 
 file(GLOB_RECURSE SRCS "*.[c|h]pp")
 

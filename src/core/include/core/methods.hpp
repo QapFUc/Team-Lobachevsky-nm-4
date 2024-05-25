@@ -3,6 +3,7 @@
 #include <vector>
 
 class MethodInterface {
+protected:
     std::vector<double> matrix;
     std::vector<double> rhs;
     double tolerance;

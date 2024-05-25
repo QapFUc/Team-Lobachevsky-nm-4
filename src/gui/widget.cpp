@@ -10,6 +10,8 @@
 #include <qstyleoption.h>
 #include <qtextedit.h>
 #include <qwidget.h>
+#include <QtDataVisualization>
+
 
 Widget::Widget(QWidget* parent) : QWidget(parent) {
     setWindowTitle("LobachevskyLab");
@@ -66,13 +68,13 @@ Widget::Widget(QWidget* parent) : QWidget(parent) {
     tabWidget->addTab(tab7, tr("Справка основной задачи"));
 
     // QLabel* label2 = new QLabel("Контент Вкладки 2", tab2);
-    QLabel* label3 = new QLabel("Контент Вкладки 3", tab3);
+    // QLabel* label3 = new QLabel("Контент Вкладки 3", tab3);
 
     // tab2->setLayout(new QVBoxLayout());  //WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // tab2->layout()->addWidget(label2);
 
-    tab3->setLayout(new QVBoxLayout());  //WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    tab3->layout()->addWidget(label3);
+    // tab3->setLayout(new QVBoxLayout());  //WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // tab3->layout()->addWidget(label3);
 
     InitTabTask();
 
@@ -83,6 +85,10 @@ Widget::Widget(QWidget* parent) : QWidget(parent) {
     CreateInfoTest();
 
     CreateInfoMain();
+
+    CreateGraphsTest();
+
+    CreateGraphsMain();
 }
 
 Widget::~Widget() {}
@@ -626,6 +632,71 @@ void Widget::CreateInfoMain() {
     MainInfoLayout->addLayout(MainInfoLayout_9);
     MainInfoLayout->addLayout(MainInfoLayout_10);
     MainInfoLayout->addLayout(MainInfoLayout_11);
+}
+
+void Widget::CreateGraphsTest() {
+    Q3DSurface *Testgraph3D = new Q3DSurface();
+    QWidget *container = QWidget::createWindowContainer(Testgraph3D);
+    tab3->setLayout(new QVBoxLayout());
+    tab3->layout()->addWidget(container);
+
+    // Создание графика
+    QSurfaceDataProxy *TestdataProxy = new QSurfaceDataProxy();
+    QSurface3DSeries *Testseries = new QSurface3DSeries(TestdataProxy);
+    
+    // Создание данных для графика
+    QSurfaceDataArray *TestdataArray = new QSurfaceDataArray();
+    QSurfaceDataRow *TestdataRow = new QSurfaceDataRow();
+    *TestdataRow << QVector3D(0, 0, 1) << QVector3D(1, 0, 2) << QVector3D(2, 0, 3);
+    TestdataArray->append(TestdataRow);
+    TestdataProxy->resetArray(TestdataArray);
+
+    // Установка графика на поверхности
+    Testgraph3D->addSeries(Testseries);
+
+    // Настройка визуализации графика
+    Testgraph3D->axisX()->setTitle("X Axis");
+    Testgraph3D->axisY()->setTitle("Y Axis");
+    Testgraph3D->axisZ()->setTitle("Z Axis");
+
+    // Включение вращения графика в пространстве
+    Testgraph3D->activeTheme()->setType(Q3DTheme::ThemeQt);
+
+    // Настройка камеры для вращения графика
+    Testgraph3D->scene()->activeCamera()->setCameraPosition(15, 15, 15);
+
+}
+
+void Widget::CreateGraphsMain() {
+    Q3DSurface *Maingraph3D = new Q3DSurface();
+    QWidget *container = QWidget::createWindowContainer(Maingraph3D);
+    tab6->setLayout(new QVBoxLayout());
+    tab6->layout()->addWidget(container);
+
+    // Создание графика
+    QSurfaceDataProxy *MaindataProxy = new QSurfaceDataProxy();
+    QSurface3DSeries *Mainseries = new QSurface3DSeries(MaindataProxy);
+    
+    // Создание данных для графика
+    QSurfaceDataArray *MaindataArray = new QSurfaceDataArray();
+    QSurfaceDataRow *MaindataRow = new QSurfaceDataRow();
+    *MaindataRow << QVector3D(0, 0, 1) << QVector3D(1, 0, 2) << QVector3D(2, 0, 3);
+    MaindataArray->append(MaindataRow);
+    MaindataProxy->resetArray(MaindataArray);
+
+    // Установка графика на поверхности
+    Maingraph3D->addSeries(Mainseries);
+
+    // Настройка визуализации графика
+    Maingraph3D->axisX()->setTitle("X Axis");
+    Maingraph3D->axisY()->setTitle("Y Axis");
+    Maingraph3D->axisZ()->setTitle("Z Axis");
+
+    // Включение вращения графика в пространстве
+    Maingraph3D->activeTheme()->setType(Q3DTheme::ThemeQt);
+
+    // Настройка камеры для вращения графика
+    Maingraph3D->scene()->activeCamera()->setCameraPosition(15, 15, 15);
 }
 
 void Widget::CreateTable2() {

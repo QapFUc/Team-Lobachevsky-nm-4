@@ -28,6 +28,8 @@ public:
     void CreateTableMain(int x, int y);
     void CreateInfoTest();
     void CreateInfoMain();
+    void CreateGraphsTest();
+    void CreateGraphsMain();
     void CreateTable2();
     void CreateGraphs();
 private slots:

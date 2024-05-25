@@ -5,6 +5,8 @@
 #include <vector>
 #include "core/netProcess.hpp"
 #include "core/methods.hpp"
+#include "dataTypes/common.hpp"
+#include "dataTypes/config.hpp"
 
 class DirichletTask {
     std::function<double(double, double)> fBoundary;
@@ -13,12 +15,14 @@ class DirichletTask {
     std::vector<double> lsrhs;
     std::vector<double> solution;
     Net net;
-    // MethodInterface method;
+    Config cfg;
+    MethodInterface method;
 public:
     DirichletTask() = default;
-    DirichletTask(std::function<double(double, double)> fBoundary, std::function<double(double, double)> fRhs, const Net& net) : fBoundary(fBoundary), fRhs(fRhs), net(net) {}
+    DirichletTask(std::function<double(double, double)> fBoundary, std::function<double(double, double)> fRhs, const Net& net, const Config& cfg) : fBoundary(fBoundary), fRhs(fRhs), net(net), cfg(cfg) {}
 
     void GenerateLinearSystem();
+    void SetMethod(const nm::Method& m);
     void eval();
 
     std::vector<double>& Solution() {
@@ -33,6 +37,4 @@ public:
         return lsrhs;
     }
 };
-
-void GenLSETestFunc(const std::string& fname);
 

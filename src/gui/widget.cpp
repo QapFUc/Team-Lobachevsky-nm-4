@@ -135,7 +135,6 @@ void Widget::InitTabTask() {
     HLayoutInputOmega->addWidget(InputOmega, 0, Qt::AlignLeft);
     HLayoutInputConnect->addWidget(SendDatabtn, 0, Qt::AlignRight);
     HLayoutInputConnect->addWidget(InputTask, 0, Qt::AlignLeft);
-    
 
     MainHLayout->addLayout(HLayoutInputN);
     MainHLayout->addLayout(HLayoutInputM);
@@ -144,10 +143,35 @@ void Widget::InitTabTask() {
     MainHLayout->addLayout(HLayoutInputOmega);
     MainHLayout->addLayout(HLayoutInputConnect);
 
-    QObject::connect(SendDatabtn, &QPushButton::clicked, this ,&Widget::onClick);
+    QObject::connect(SendDatabtn, &QPushButton::clicked, this, &Widget::SendDatabtnClick);
 }
 
-void Widget::onClick() {}
+void Widget::SendDatabtnClick() {
+    config = Config((InputN->text()).toDouble(),
+                    (InputM->text()).toDouble(),
+                    (InputEps->text()).toDouble(),
+                    (InputMaxStep->text()).toDouble(),
+                    InputTask->currentIndex(),
+                    InputOmega->text().toDouble());
+    if (config.CountCutX<=0 || config.CountCutY<= 0) {
+        QMessageBox::critical(this, "Critical Error", "Start point must be > 0");
+        return;
+    }
+    switch (InputTask->currentIndex()) {
+    case 0:
+        //StartTest(config);
+        break;
+    case 1:
+        //StartMain(config);
+        break;
+    case 2:
+        //StartOscil(config);
+        break;
+    default:
+        //StartTest(config);
+        break;
+    }
+}
 
 void Widget::CreateTableTest(int x, int y) {
 

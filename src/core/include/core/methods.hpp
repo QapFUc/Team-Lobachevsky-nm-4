@@ -10,9 +10,10 @@ protected:
     MethodConfig cfg;
 
 public:
-    MethodInterface();
-    MethodInterface(std::vector<double> m, std::vector<double> rhs, const MethodConfig& cfg)
+    MethodInterface() = default;
+    MethodInterface(const std::vector<double>& m, const std::vector<double>& rhs, const MethodConfig& cfg)
         : matrix(m), rhs(rhs), cfg(cfg) {}
+    virtual ~MethodInterface() {}
 
-    virtual std::vector<double> eval();
+    virtual std::vector<double> eval() = 0;
 };

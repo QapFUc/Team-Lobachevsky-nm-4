@@ -16,7 +16,7 @@ class DirichletTask {
     std::vector<double> solution; // само решение готовое
     Net net; // сетка
     Config cfg; 
-    MethodInterface method;
+    MethodInterface* method = nullptr;
 public:
     DirichletTask() = default;
     DirichletTask(std::function<double(double, double)> fBoundary, std::function<double(double, double)> fRhs, const Net& net, const Config& cfg) : fBoundary(fBoundary), fRhs(fRhs), net(net), cfg(cfg) {}

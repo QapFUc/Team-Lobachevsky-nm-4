@@ -1,12 +1,13 @@
 #pragma once
 
+#include "dataTypes/common.hpp"
 #include <cstddef>
 #include <vector>
 #ifndef CONFIG_HPP
 #    define CONFIG_HPP
 
 struct MethodConfig {
-    std::vector<double> startX;
+    nm::StartApr startX;
     double tolerance;
     size_t matrix_width;
     size_t Max_N = 0;
@@ -21,7 +22,7 @@ struct Config {
     size_t Max_N = 0;
     size_t Parametr = 0;
     int Task = 0;
-    std::vector<double> startX;
+    nm::StartApr startX;
     double tolerance;
     Config(const double& CountCutX,
            const double& CountCutY,
@@ -29,7 +30,7 @@ struct Config {
            const size_t& Max_N,
            const int& Task,
            const size_t& Parametr,
-           const std::vector<double>& startX,
+           const nm::StartApr& startX,
            const double& tolerance)
         : CountCutX(CountCutX), CountCutY(CountCutY), Accuracy(Accuracy), Max_N(Max_N), Task(Task), Parametr(Parametr), startX(startX), tolerance(tolerance) {}
     Config() = default;

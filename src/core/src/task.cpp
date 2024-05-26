@@ -1,4 +1,5 @@
 #include "core/CGM.hpp"
+#include "core/SimpleIter.hpp"
 #include "core/netProcess.hpp"
 
 #include "core/task.hpp"
@@ -74,17 +75,27 @@ void DirichletTask::GenerateLinearSystem() {
 }
 
 void DirichletTask::SetMethod(const nm::Method& m) {
-    MethodConfig mcfg;
-    mcfg.startX = cfg.startX;
-    mcfg.matrix_width = net.nodes.size();
-    mcfg.tolerance = cfg.tolerance;
-    
-    switch (m) {
-    case nm::Method::CGM:
-        method = ConjGradMethod(lsmatrix, lsrhs, mcfg);
-    case nm::Method::SimpleIter:
-        return;
-    default:
-        return;
+    if (method != nullptr) {
+        delete this->method;
     }
+
+    if (m == nm::Method::CGM) {
+        MethodConfig mcfg;
+        mcfg.startX = cfg.startX;
+        mcfg.matrix_width = net.nodes.size();
+        mcfg.tolerance = cfg.tolerance;
+        mcfg.Max_N = cfg.Max_N;
+        this->method = new ConjGradMethod(lsmatrix, lsrhs, mcfg);
+    } else if (m == nm::Method::SimpleIter) {
+        SimpleIterMethodConfig scfg;
+        scfg.startX = cfg.startX;
+        scfg.matrix_width = net.nodes.size();
+        scfg.tolerance = cfg.tolerance;
+        scfg.Max_N = cfg.Max_N;
+        this->method = new SimpleIter(lsmatrix, lsrhs, scfg);
+    }
+}
+
+void DirichletTask::eval() {
+    solution = this->method->eval();
 }

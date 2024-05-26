@@ -7,12 +7,14 @@
 #    include "core/task.hpp"
 #    include "dataTypes/config.hpp"
 
-class SimpleIter : public MethodInterface {
+class SimpleIter final : public MethodInterface {
     SimpleIterMethodConfig config;
+
 public:
     SimpleIter() = default;
-    SimpleIter(std::vector<double> m, std::vector<double> rhs, SimpleIterMethodConfig config);
+    SimpleIter(const std::vector<double>& m, const std::vector<double>& rhs, const SimpleIterMethodConfig& config)
+        : MethodInterface(m, rhs, config), config(config) {}
     std::vector<double> eval() override;
 };
 
-#endif // SIMPLEITER_HPP
+#endif  // SIMPLEITER_HPP

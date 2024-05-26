@@ -1,16 +1,19 @@
 #include "core/SimpleIter.hpp"
+#include "dataTypes/common.hpp"
 #include <vector>
 
-SimpleIter::SimpleIter(std::vector<double> m, std::vector<double> rhs, SimpleIterMethodConfig config )
-    : MethodInterface(std::move(m), std::move(rhs), std::move(config)) {}
-
 std::vector<double> SimpleIter::eval() {
-    std::vector<double> result(config.startX.size());
-    auto X = config.startX;
-    double Parametr = 1/(-2*matrix[2]+4);
+    std::vector<double> result(rhs.size());
+    std::vector<double> X(rhs.size());
+    if (cfg.startX == nm::StartApr::Zeros) {
+        for (auto& x : X)
+            x = 0.l;
+    }
+
+    double Parametr = 1 / (-2 * matrix[2] + 4);
     int n = 0;
     double resist = 100;
-    while (n < config.Max_N && resist < config.tolerance) {
+    while (n < config.Max_N && resist >= config.tolerance) {
         resist = 0;
         result[0] = X[0] - Parametr * ((matrix[0 * 5 + 2] * X[0] + matrix[0 * 5 + 3] * X[1] + matrix[0 * 5 + 4] * X[4]) - rhs[0]);
         result[1] = X[1] - Parametr * ((matrix[1 * 5 + 1] * X[0] + matrix[1 * 5 + 2] * X[1] + matrix[1 * 5 + 3] * X[2] + matrix[1 * 5 + 4] * X[5]) - rhs[1]);
@@ -41,8 +44,10 @@ std::vector<double> SimpleIter::eval() {
                                                                   matrix[(rhs.size() - 1) * 5 + 2] * X[rhs.size() - 1]) -
                                                                  rhs[rhs.size() - 1]);
         X = result;
-        for(int i=0;i<config.startX.size();++i){
-            if (std::abs(rhs[i]-X[i])>resist) {resist=std::abs(rhs[i]-X[i]);}
+        for (int i = 0; i < rhs.size(); ++i) {
+            if (std::abs(rhs[i] - X[i]) > resist) {
+                resist = std::abs(rhs[i] - X[i]);
+            }
         }
         n++;
     }

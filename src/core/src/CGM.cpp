@@ -1,5 +1,8 @@
 #include "core/CGM.hpp"
+#include "core/vector.hpp"
 #include "dataTypes/common.hpp"
+#include "nm/utils/logger.hpp"
+#include "nm/utils/profiler.hpp"
 #include <cmath>
 #include <cstddef>
 #include <ctime>
@@ -7,9 +10,6 @@
 #include <numeric>
 #include <ostream>
 #include <vector>
-#include "core/vector.hpp"
-#include "nm/utils/logger.hpp"
-#include "nm/utils/profiler.hpp"
 
 std::vector<double> ConjGradMethod::eval() {
     LOG_INFO_CLI("Creating vectors");
@@ -34,17 +34,32 @@ std::vector<double> ConjGradMethod::eval() {
 
     direction = residual;
 
-    double curr_tol = 1e15;
+    double curr_tol = std::sqrt(EuclidianNormSq(residual));
+    double init_tol = curr_tol;
     size_t k = 0;
     double percentage = 0.l;
-    double perc_step = (1.l / cfg.Max_N);
+    double perc_step = 0.l;
     std::vector<double> tmp(rhs->size());
     LOG_INFO_CLI("Iterating CGM...");
     std::cout << percentage * 100.l << "\% done ";
     std::clock_t start;
     double duration = 0.l;
+    double start_tol = curr_tol, diff_tol = 0.l;
+    start = std::clock();
     while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
-        start = std::clock();
+        if (k % 10 == 0) {
+            if (curr_tol > init_tol)
+                init_tol = curr_tol;
+            duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
+            diff_tol = start_tol - curr_tol;
+            perc_step = (diff_tol / (init_tol - cfg.tolerance));
+            percentage += perc_step;
+            std::cout << '\r' << std::max(percentage * 100.l, 0.l) << "\% done "
+                      << ". Estimation time (approx): " << duration * std::abs(((curr_tol - cfg.tolerance) / diff_tol)) << " s"
+                      << " current tolerance " << diff_tol << std::flush;
+            start = std::clock();
+            start_tol = curr_tol;
+        }
         MatrixOperate(*matrix, direction, tmp, cfg.matrix_width);
         prod = InnerProd(residual, residual);
         alpha = prod / InnerProd(direction, tmp);
@@ -57,10 +72,6 @@ std::vector<double> ConjGradMethod::eval() {
         VectorSum(residual, direction, direction, 1.l, beta);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         k++;
-
-        duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
-        percentage += perc_step;
-        std::cout << '\r' << percentage * 100.l << "\% done " << ". Estimation time (approx): " << duration * (cfg.Max_N - k) << " s" <<  std::flush;
     }
 
     std::cout << '\n';

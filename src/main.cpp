@@ -12,7 +12,7 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     nm::Profiler nest = prof.nest(nm::GET_CURRENT_SCOPE());
     NetPattern pat = ImportNetPattern(fname);
     LOG_INFO_CLI("Got pattern");
-    Net net = pat.generateNet(5000, 0, 0, 0.1, 0.1);
+    Net net = pat.generateNet(10, 0, 0, 0.1, 0.1);
 
     LOG_INFO_CLI("Net generated");
 
@@ -37,8 +37,8 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
 
     Config cfg;
     cfg.startX = nm::StartApr::Zeros;
-    cfg.tolerance = 1e-15;
-    cfg.Max_N = 50;
+    cfg.tolerance = 1e-4;
+    cfg.Max_N = 1000;
 
     DirichletTask dt(fb, fr, net, cfg);
 
@@ -72,34 +72,34 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     LOG_INFO_CLI("Evaluating tasak...");
     dt.eval();
     LOG_INFO_CLI("Task evaluated");
-    // std::vector<double> sol1(dt.Solution().size());
-    // sol1 = dt.Solution();
+    std::vector<double> sol1(dt.Solution().size());
+    sol1 = dt.Solution();
 
     std::cout << "CGM solution\n";
     for (size_t i = 0; i < 100; ++i) {
         std::cout << dt.Solution()[i] << '\n';
     }
 
-    // dt.SetMethod(nm::Method::SimpleIter);
-    // dt.eval();
+    dt.SetMethod(nm::Method::SimpleIter);
+    dt.eval();
 
-    // std::vector<double> sol2(dt.Solution().size());
-    // sol2 = dt.Solution();
+    std::vector<double> sol2(dt.Solution().size());
+    sol2 = dt.Solution();
 
-    // std::cout << "SIM solution\n";
-    // for (auto& x : sol2) {
-    //     std::cout << x << '\n';
-    // }
+    std::cout << "SIM solution\n";
+    for (auto& x : sol2) {
+        std::cout << x << '\n';
+    }
 
-    // double diff = 0.l;
-    // double curr_diff = 0.l;
-    // for (size_t i = 0; i < sol1.size(); ++i) {
-    //     curr_diff = std::abs(sol1[i] - sol2[i]);
-    //     if (curr_diff > diff)
-    //         diff = curr_diff;
-    // }
+    double diff = 0.l;
+    double curr_diff = 0.l;
+    for (size_t i = 0; i < sol1.size(); ++i) {
+        curr_diff = std::abs(sol1[i] - sol2[i]);
+        if (curr_diff > diff)
+             diff = curr_diff;
+     }
 
-    // std::cout << "Diff betw CGM and SIM: " << diff << '\n';
+     std::cout << "Diff betw CGM and SIM: " << diff << '\n';
 }
 
 int main(int argc, char* argv[]) {

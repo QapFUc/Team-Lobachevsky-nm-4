@@ -60,5 +60,3 @@ public:
 };
 
 NetPattern ImportNetPattern(const std::string& fname);
-
-void NPTestFunc(const std::string& fname);

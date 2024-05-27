@@ -18,4 +18,13 @@ enum struct Status {
     Failure = 0,
     Success = 1
 };
+
+enum struct Method {
+    SimpleIter = 0,
+    CGM = 1,
+};
+
+enum struct StartApr {
+    Zeros = 0,
+};
 } // namespace nm

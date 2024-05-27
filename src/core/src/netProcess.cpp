@@ -101,21 +101,3 @@ NetPattern ImportNetPattern(const std::string& fname) {
 
     return NetPattern::readFromFile(file);
 }
-
-void NPTestFunc(const std::string& fname) {
-    NetPattern pat = ImportNetPattern(fname);
-    Net net = pat.generateNet(50, 0, 0, 0.1, 0.1);
-
-    for (size_t j = 0; j < net.nodes[0].size(); ++j) {
-        for (size_t i = 0; i < net.nodes.size(); ++i) {
-            if (net.nodes[i][j] == NodeType::BOUND) {
-                std::cout << 'o';
-            } else if (net.nodes[i][j] == NodeType::INNER) {
-                std::cout << 'x';
-            } else {
-                std::cout << ' ';
-            }
-        }
-        std::cout << '\n';
-    }
-}

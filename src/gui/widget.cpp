@@ -147,12 +147,12 @@ void Widget::InitTabTask() {
 }
 
 void Widget::SendDatabtnClick() {
-    config = Config((InputN->text()).toDouble(),
-                    (InputM->text()).toDouble(),
-                    (InputEps->text()).toDouble(),
-                    (InputMaxStep->text()).toDouble(),
-                    InputTask->currentIndex(),
-                    InputOmega->text().toDouble());
+    // config = Config((InputN->text()).toDouble(),
+    //                 (InputM->text()).toDouble(),
+    //                 (InputEps->text()).toDouble(),
+    //                 (InputMaxStep->text()).toDouble(),
+    //                 InputTask->currentIndex(),
+    //                 InputOmega->text().toDouble());
     if (config.CountCutX<=0 || config.CountCutY<= 0) {
         QMessageBox::critical(this, "Critical Error", "Start point must be > 0");
         return;

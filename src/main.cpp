@@ -12,7 +12,7 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     nm::Profiler nest = prof.nest(nm::GET_CURRENT_SCOPE());
     NetPattern pat = ImportNetPattern(fname);
     LOG_INFO_CLI("Got pattern");
-    Net net = pat.generateNet(10, 0, 0, 0.1, 0.1);
+    Net net = pat.generateNet(1000, 0, 0, 0.1, 0.1);
 
     LOG_INFO_CLI("Net generated");
 

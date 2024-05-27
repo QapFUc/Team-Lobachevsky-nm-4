@@ -35,14 +35,7 @@ std::vector<double> SimpleIter::eval() {
     std::cout << percentage * 100.l << "\% done ";
     std::clock_t start;
     double duration = 0.l;
-    double lambda_min = 1e15;
-    double lambda_max = -1e15;
-    for (int i = 0; i<5*rhs->size();i=i+5) {
-        double tmp = std::abs((*matrix)[i])+std::abs((*matrix)[i+1])+std::abs((*matrix)[i+3])+std::abs((*matrix)[i+4]);
-        if ((*matrix)[i+2]-tmp <lambda_min) {lambda_min = (*matrix)[i+2]-tmp ;}
-        if ((*matrix)[i+2]+tmp >lambda_max) {lambda_max = (*matrix)[i+2]+tmp ;}
-    }
-    double parametr = (2.l/(lambda_max+lambda_min));
+    double parametr = (1.l/(2* (*matrix)[2]-1));
     while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
         start = std::clock();
         VectorSum(result, residual, result,1.l,parametr);

@@ -75,9 +75,9 @@ static double EuclidianNormSq(const std::vector<double>& x) {
 }
 
 std::vector<double> ConjGradMethod::eval() {
-    std::vector<double> result(rhs.size());
-    std::vector<double> direction(rhs.size());
-    std::vector<double> residual(rhs.size());
+    std::vector<double> result(rhs->size());
+    std::vector<double> direction(rhs->size());
+    std::vector<double> residual(rhs->size());
     double alpha, beta, prod;
 
     // Start residual
@@ -87,8 +87,8 @@ std::vector<double> ConjGradMethod::eval() {
             x = 0.l;
     }
 
-    MatrixOperate(matrix, result, residual, cfg.matrix_width);
-    VectorSub(rhs, residual, residual);
+    MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+    VectorSub(*rhs, residual, residual);
 
     // start direction
 
@@ -96,9 +96,9 @@ std::vector<double> ConjGradMethod::eval() {
 
     double curr_tol = 1e15;
     size_t k = 0;
-    std::vector<double> tmp(rhs.size());
+    std::vector<double> tmp(rhs->size());
     while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
-        MatrixOperate(matrix, direction, tmp, cfg.matrix_width);
+        MatrixOperate(*matrix, direction, tmp, cfg.matrix_width);
         prod = InnerProd(residual, residual);
         alpha = prod / InnerProd(direction, tmp);
         VectorSum(result, direction, result, 1.l, alpha);

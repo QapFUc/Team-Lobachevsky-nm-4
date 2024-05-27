@@ -12,7 +12,7 @@ class SimpleIter final : public MethodInterface {
 
 public:
     SimpleIter() = default;
-    SimpleIter(const std::vector<double>& m, const std::vector<double>& rhs, const SimpleIterMethodConfig& config)
+    SimpleIter(const std::vector<double>* m, const std::vector<double>* rhs, const SimpleIterMethodConfig& config)
         : MethodInterface(m, rhs, config), config(config) {}
     std::vector<double> eval() override;
 };

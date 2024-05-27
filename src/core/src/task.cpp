@@ -85,14 +85,14 @@ void DirichletTask::SetMethod(const nm::Method& m) {
         mcfg.matrix_width = net.nodes.size();
         mcfg.tolerance = cfg.tolerance;
         mcfg.Max_N = cfg.Max_N;
-        this->method = new ConjGradMethod(lsmatrix, lsrhs, mcfg);
+        this->method = new ConjGradMethod(&lsmatrix, &lsrhs, mcfg);
     } else if (m == nm::Method::SimpleIter) {
         SimpleIterMethodConfig scfg;
         scfg.startX = cfg.startX;
         scfg.matrix_width = net.nodes.size();
         scfg.tolerance = cfg.tolerance;
         scfg.Max_N = cfg.Max_N;
-        this->method = new SimpleIter(lsmatrix, lsrhs, scfg);
+        this->method = new SimpleIter(&lsmatrix, &lsrhs, scfg);
     }
 }
 

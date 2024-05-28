@@ -37,8 +37,10 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
 
     Config cfg;
     cfg.startX = nm::StartApr::Zeros;
-    cfg.tolerance = 1e-4;
-    cfg.Max_N = 1000;
+
+    cfg.tolerance = 1e-7;
+    cfg.Max_N = 100000;
+
 
     DirichletTask dt(fb, fr, net, cfg);
 

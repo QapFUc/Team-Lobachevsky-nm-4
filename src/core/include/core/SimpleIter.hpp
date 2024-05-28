@@ -6,6 +6,7 @@
 #    include "core/methods.hpp"
 #    include "core/task.hpp"
 #    include "dataTypes/config.hpp"
+#    include "core/vector.hpp"
 
 class SimpleIter final : public MethodInterface {
     SimpleIterMethodConfig config;

@@ -1,55 +1,55 @@
 #include "core/SimpleIter.hpp"
+#include "core/vector.hpp"
 #include "dataTypes/common.hpp"
+#include <iostream>
 #include <vector>
+#include <ctime>
+#include "nm/utils/logger.hpp"
+
 
 std::vector<double> SimpleIter::eval() {
+    LOG_INFO_CLI("Creating vectors");
     std::vector<double> result(rhs->size());
-    std::vector<double> X(rhs->size());
+    std::vector<double> residual(rhs->size());
+    double alpha, beta, prod;
+
+    // Start residual
+
+    LOG_INFO_CLI("Set start approach");
     if (cfg.startX == nm::StartApr::Zeros) {
-        for (auto& x : X)
+        for (auto& x : result)
             x = 0.l;
     }
 
-    double Parametr = 1 / (-2 * (*matrix)[2] + 4);
-    int n = 0;
-    double resist = 100;
-    while (n < config.Max_N && resist >= config.tolerance) {
-        resist = 0;
-        result[0] = X[0] - Parametr * (((*matrix)[0 * 5 + 2] * X[0] + (*matrix)[0 * 5 + 3] * X[1] + (*matrix)[0 * 5 + 4] * X[4]) - (*rhs)[0]);
-        result[1] = X[1] - Parametr * (((*matrix)[1 * 5 + 1] * X[0] + (*matrix)[1 * 5 + 2] * X[1] + (*matrix)[1 * 5 + 3] * X[2] + (*matrix)[1 * 5 + 4] * X[5]) - (*rhs)[1]);
-        result[2] = X[2] - Parametr * (((*matrix)[2 * 5 + 1] * X[1] + (*matrix)[2 * 5 + 2] * X[2] + (*matrix)[2 * 5 + 3] * X[3] + (*matrix)[2 * 5 + 4] * X[6]) - (*rhs)[2]);
-        result[3] = X[3] - Parametr * (((*matrix)[3 * 5 + 1] * X[2] + (*matrix)[3 * 5 + 2] * X[3] + (*matrix)[3 * 5 + 3] * X[4] + (*matrix)[3 * 5 + 4] * X[7]) - (*rhs)[3]);
-        for (int i = 4; i < rhs->size() - 4; ++i) {
-            result[i] = X[i] - Parametr * (((*matrix)[i * 5 + 0] * X[i - 4] + (*matrix)[i * 5 + 1] * X[i - 1] + (*matrix)[i * 5 + 2] * X[i] +
-                                            (*matrix)[i * 5 + 3] * X[i + 1] + (*matrix)[i * 5 + 4] * X[i + 4]) -
-                                           (*rhs)[i]);
-        }
-        result[rhs->size() - 4] =
-            X[rhs->size() - 4] -
-            Parametr * (((*matrix)[(rhs->size() - 4) * 5 + 0] * X[(rhs->size() - 4) - 4] + (*matrix)[(rhs->size() - 4) * 5 + 1] * X[(rhs->size() - 4) - 1] +
-                         (*matrix)[(rhs->size() - 4) * 5 + 2] * X[rhs->size() - 4] + (*matrix)[(rhs->size() - 4) * 5 + 3] * X[(rhs->size() - 4) + 1]) -
-                        (*rhs)[rhs->size() - 4]);
-        result[rhs->size() - 3] =
-            X[rhs->size() - 3] -
-            Parametr * (((*matrix)[(rhs->size() - 3) * 5 + 0] * X[(rhs->size() - 3) - 4] + (*matrix)[(rhs->size() - 3) * 5 + 1] * X[(rhs->size() - 3) - 1] +
-                         (*matrix)[(rhs->size() - 3) * 5 + 2] * X[rhs->size() - 3] + (*matrix)[(rhs->size() - 3) * 5 + 3] * X[(rhs->size() - 3) + 1]) -
-                        (*rhs)[rhs->size() - 3]);
-        result[rhs->size() - 2] =
-            X[rhs->size() - 2] -
-            Parametr * (((*matrix)[(rhs->size() - 2) * 5 + 0] * X[(rhs->size() - 2) - 4] + (*matrix)[(rhs->size() - 2) * 5 + 1] * X[(rhs->size() - 2) - 1] +
-                         (*matrix)[(rhs->size() - 2) * 5 + 2] * X[rhs->size() - 2] + (*matrix)[(rhs->size() - 2) * 5 + 3] * X[(rhs->size() - 2) + 1]) -
-                        (*rhs)[rhs->size() - 2]);
-        result[rhs->size() - 1] = X[rhs->size() - 1] - Parametr * (((*matrix)[(rhs->size() - 1) * 5 + 0] * X[(rhs->size() - 1) - 4] +
-                                                                  (*matrix)[(rhs->size() - 1) * 5 + 1] * X[(rhs->size() - 1) - 1] +
-                                                                  (*matrix)[(rhs->size() - 1) * 5 + 2] * X[rhs->size() - 1]) -
-                                                                 (*rhs)[rhs->size() - 1]);
-        X = result;
-        for (int i = 0; i < rhs->size(); ++i) {
-            if (std::abs((*rhs)[i] - X[i]) > resist) {
-                resist = std::abs((*rhs)[i] - X[i]);
-            }
-        }
-        n++;
+    LOG_INFO_CLI("Evaluating start residual");
+    MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+    VectorSub(*rhs, residual, residual);
+
+    // start direction
+    double curr_tol = 1e15;
+    size_t k = 0;
+    double percentage = 0.l;
+    double perc_step = (1.l / cfg.Max_N);
+    std::vector<double> tmp(rhs->size());
+    LOG_INFO_CLI("Iterating SimpleIter...");
+    std::cout << percentage * 100.l << "\% done ";
+    std::clock_t start;
+    double duration = 0.l;
+    double parametr = (1.l/(2* (*matrix)[2]-1));
+    while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
+        start = std::clock();
+        VectorSum(result, residual, result,1.l,parametr);
+        MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+        VectorSub(*rhs, residual, residual);
+        k++;
+        duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
+        percentage += perc_step;
+        curr_tol = std::sqrt(EuclidianNormSq(residual));
+        std::cout << '\r' << percentage * 100.l << "\% done " << ". Estimation time (approx): " << duration * (cfg.Max_N - k) << " s" <<  std::flush;
     }
-    return X;
+
+    std::cout << '\n';
+    std::cout << "Total tolerance: " << curr_tol << '\n';
+    LOG_INFO_CLI("SimpleIter finished");
+    return result;
 }

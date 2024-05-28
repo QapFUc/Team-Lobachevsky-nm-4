@@ -11,6 +11,8 @@ struct MethodConfig {
     double tolerance;
     size_t matrix_width;
     size_t Max_N = 0;
+    size_t n;
+    size_t m;
 };
 
 struct SimpleIterMethodConfig : MethodConfig {};

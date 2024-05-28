@@ -1,4 +1,5 @@
 #include "core/CGM.hpp"
+#include "core/SOR.hpp"
 #include "core/SimpleIter.hpp"
 #include "core/netProcess.hpp"
 
@@ -93,6 +94,15 @@ void DirichletTask::SetMethod(const nm::Method& m) {
         scfg.tolerance = cfg.tolerance;
         scfg.Max_N = cfg.Max_N;
         this->method = new SimpleIter(&lsmatrix, &lsrhs, scfg);
+    } else if (m == nm::Method::SOR) {
+        MethodConfig mcfg;
+        mcfg.startX = cfg.startX;
+        mcfg.matrix_width = net.nodes.size();
+        mcfg.tolerance = cfg.tolerance;
+        mcfg.Max_N = cfg.Max_N;
+        mcfg.n = cfg.CountCutX;
+        mcfg.m = cfg.CountCutY;
+        this->method = new SuccessiveOverRelax(&lsmatrix, &lsrhs, mcfg);
     }
 }
 

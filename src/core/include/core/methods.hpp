@@ -16,5 +16,7 @@ public:
     virtual ~MethodInterface() {}
 
     virtual std::vector<double> eval() = 0;
+
+    std::vector<double> InitialX() const;
 };
 

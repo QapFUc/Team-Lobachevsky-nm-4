@@ -17,13 +17,14 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Widgets Charts DataVisualizat
 
 
 if(${X11})
-    target_link_libraries(gui.out PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::DataVisualization nm::dtypes)
+
+    target_link_libraries(gui.out PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::DataVisualization nm::dtypes dirichlet::core)
 endif()
 
 if(${MAC})
-    target_link_libraries(gui.out PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::DataVisualization nm::dtypes)
+    target_link_libraries(gui.out PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::DataVisualization nm::dtypes dirichlet::core)
 endif()
 
 if(NOT ${X11} AND NOT ${MAC})
-    target_link_libraries(gui.out PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::WaylandCompositor Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::DataVisualization nm::dtypes)
+    target_link_libraries(gui.out PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::WaylandCompositor Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::DataVisualization nm::dtypes dirichlet::core)
 endif()

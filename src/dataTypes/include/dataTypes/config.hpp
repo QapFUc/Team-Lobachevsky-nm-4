@@ -16,6 +16,10 @@ struct MethodConfig {
 struct SimpleIterMethodConfig : MethodConfig {};
 
 struct Config {
+    double StartXArea = .0;
+    double EndXArea = .0;
+    double StartYArea = .0;
+    double EndYArea = .0;
     double CountCutX = .0;
     double CountCutY = .0;
     double Accuracy = 1.0;
@@ -24,15 +28,19 @@ struct Config {
     int Task = 0;
     nm::StartApr startX;
     double tolerance;
-    Config(const double& CountCutX,
+    Config(const double StartXArea,
+           const double EndXArea,
+           const double StartYArea,
+           const double EndYArea,
+           const double& CountCutX,
            const double& CountCutY,
-           const double& Accuracy,
            const size_t& Max_N,
            const int& Task,
            const size_t& Parametr,
            const nm::StartApr& startX,
            const double& tolerance)
-        : CountCutX(CountCutX), CountCutY(CountCutY), Accuracy(Accuracy), Max_N(Max_N), Task(Task), Parametr(Parametr), startX(startX), tolerance(tolerance) {}
+        : StartXArea(StartXArea), EndXArea(EndXArea), StartYArea(StartYArea), EndYArea(EndYArea), CountCutX(CountCutX), CountCutY(CountCutY), Max_N(Max_N),
+          Task(Task), Parametr(Parametr), startX(startX), tolerance(tolerance) {}
     Config() = default;
 };
 #endif

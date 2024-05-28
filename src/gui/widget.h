@@ -29,7 +29,12 @@ public:
     Widget(QWidget* parent = nullptr);
     ~Widget();
     void InitTabTask();
-    void CreateTable1();
+    void CreateTableTest(int x, int y);
+    void CreateTableMain(int x, int y);
+    void CreateInfoTest();
+    void CreateInfoMain();
+    void CreateGraphsTest();
+    void CreateGraphsMain();
     void CreateTable2();
     void CreateGraphs();
     void StartSimplexIter();
@@ -47,7 +52,13 @@ private:
     QTabWidget* tabWidget;
 
     QWidget* tabTask;
+
     QVBoxLayout* MainHLayout;
+    QVBoxLayout* TestTableLayout;
+    QVBoxLayout* MainTableLayout;
+    QVBoxLayout *TestInfoLayout;
+    QVBoxLayout *MainInfoLayout;
+
     QLineEdit* InputN;
     QLineEdit* InputM;
     QLineEdit* InputEps;
@@ -67,5 +78,8 @@ private:
     QWidget* tab2;
     QWidget* tab3;
     QWidget* tab4;
+    QWidget* tab5;
+    QWidget* tab6;
+    QWidget* tab7;
 };
 #endif  // WIDGET_H

@@ -17,3 +17,4 @@ public:
 
     virtual std::vector<double> eval() = 0;
 };
+

@@ -17,6 +17,10 @@
 #include <qpushbutton.h>
 #include <signal.h>
 #include "dataTypes/config.hpp"
+#include "core/netProcess.hpp"
+#include "dataTypes/common.hpp"
+#include "core/netProcess.hpp"
+#include "core/task.hpp"
 
 class Widget : public QWidget {
     Q_OBJECT
@@ -28,11 +32,18 @@ public:
     void CreateTable1();
     void CreateTable2();
     void CreateGraphs();
+    void StartSimplexIter();
+    void StartCGM();
+    void InitDirTask();
+    void UpdateDirTask();
 private slots:
 
     void SendDatabtnClick();
 
 private:
+    NetPattern* Networkpattern;
+    Net* Network;
+    DirichletTask* DirTask;
     QTabWidget* tabWidget;
 
     QWidget* tabTask;
@@ -42,7 +53,12 @@ private:
     QLineEdit* InputEps;
     QLineEdit* InputMaxStep;
     QLineEdit* InputOmega;
+    QLineEdit* InputStartXArea;
+    QLineEdit* InputEndXArea;
+    QLineEdit* InputStartYArea;
+    QLineEdit* InputEndYArea;
     QComboBox* InputTask;
+    QComboBox* InputStartx;
     QPushButton* SendDatabtn;
 
     Config config;

@@ -1,3 +1,6 @@
+#include "core/netProcess.hpp"
+#include "core/task.hpp"
+#include "dataTypes/common.hpp"
 #include "widget.h"
 
 #include <QtCharts>
@@ -5,6 +8,7 @@
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qlayoutitem.h>
+#include <qlineedit.h>
 #include <qnamespace.h>
 #include <qpushbutton.h>
 #include <qstyleoption.h>
@@ -78,6 +82,8 @@ void Widget::InitTabTask() {
     QLabel* label3 = new QLabel("Введите точность", tabTask);
     QLabel* label4 = new QLabel("Введите максимальное количество шагов", tabTask);
     QLabel* label5 = new QLabel("Введите параметр метода", tabTask);
+    QLabel* label6 = new QLabel("Введите границы области x:", tabTask);
+    QLabel* label7 = new QLabel(" y:", tabTask);
 
     MainHLayout = new QVBoxLayout();
 
@@ -93,8 +99,26 @@ void Widget::InitTabTask() {
     InputMaxStep->setMaximumWidth(200);
     InputOmega = new QLineEdit();
     InputOmega->setMaximumWidth(200);
+    InputStartXArea = new QLineEdit();
+    InputStartXArea->setMaximumWidth(200);
+    InputEndXArea = new QLineEdit();
+    InputEndXArea->setMaximumWidth(200);
+    InputStartYArea = new QLineEdit();
+    InputStartYArea->setMaximumWidth(200);
+    InputEndYArea = new QLineEdit();
+    InputEndYArea->setMaximumWidth(200);
     InputTask = new QComboBox();
-    SendDatabtn = new QPushButton();
+    InputTask->addItem("Выбрать задачу");
+    InputTask->addItem("Тестовая");
+    InputTask->addItem("Первая ступень Колганов");
+    InputTask->addItem("Вторая ступень Усов");
+    InputTask->addItem("Вторая ступень Сучков");
+    InputTask->addItem("Третья ступень Руяткин");
+    InputStartx = new QComboBox();
+    InputStartx->addItem("Выбрать приближение");
+    InputStartx->addItem("Нулевое");
+    SendDatabtn = new QPushButton("&Старт");
+    QHBoxLayout* HLayoutArea = new QHBoxLayout();
     QHBoxLayout* HLayoutInputN = new QHBoxLayout();
     QHBoxLayout* HLayoutInputM = new QHBoxLayout();
     QHBoxLayout* HLayoutInputEps = new QHBoxLayout();
@@ -102,6 +126,12 @@ void Widget::InitTabTask() {
     QHBoxLayout* HLayoutInputOmega = new QHBoxLayout();
     QHBoxLayout* HLayoutInputConnect = new QHBoxLayout();
 
+    HLayoutArea->addWidget(label6, 0, Qt::AlignRight);
+    HLayoutArea->addWidget(InputStartXArea, 0, Qt::AlignRight);
+    HLayoutArea->addWidget(InputEndXArea, 0, Qt::AlignLeft);
+    HLayoutArea->addWidget(label7, 0, Qt::AlignRight);
+    HLayoutArea->addWidget(InputStartYArea, 0, Qt::AlignRight);
+    HLayoutArea->addWidget(InputEndYArea, 0, Qt::AlignLeft);
     HLayoutInputN->addWidget(label1, 0, Qt::AlignRight);
     HLayoutInputN->addWidget(InputN, 0, Qt::AlignLeft);
     HLayoutInputM->addWidget(label2, 0, Qt::AlignRight);
@@ -113,8 +143,10 @@ void Widget::InitTabTask() {
     HLayoutInputOmega->addWidget(label5, 0, Qt::AlignRight);
     HLayoutInputOmega->addWidget(InputOmega, 0, Qt::AlignLeft);
     HLayoutInputConnect->addWidget(SendDatabtn, 0, Qt::AlignRight);
-    HLayoutInputConnect->addWidget(InputTask, 0, Qt::AlignLeft);
+    HLayoutInputConnect->addWidget(InputTask, 0, Qt::AlignRight);
+    HLayoutInputConnect->addWidget(InputStartx, 0, Qt::AlignLeft);
 
+    MainHLayout->addLayout(HLayoutArea);
     MainHLayout->addLayout(HLayoutInputN);
     MainHLayout->addLayout(HLayoutInputM);
     MainHLayout->addLayout(HLayoutInputEps);
@@ -123,19 +155,63 @@ void Widget::InitTabTask() {
     MainHLayout->addLayout(HLayoutInputConnect);
 
     QObject::connect(SendDatabtn, &QPushButton::clicked, this, &Widget::SendDatabtnClick);
+
+    InitDirTask();
+}
+
+void Widget::InitDirTask() {
+    Networkpattern = (new NetPattern());
+    Network = new Net();
+    auto fb = [](const double& x, const double& y) -> double {
+        return (x + y);
+    };
+    auto fr = [](const double& x, const double& y) -> double {
+        return 1 - x - y;
+    };
+
+    DirTask = new DirichletTask(fb, fr, *Network, config);
+}
+
+void Widget::UpdateDirTask() {
+    Networkpattern->setMainSpace(config.CountCutX / config.CountCutY);
+    *Network = Networkpattern->generateNet(config.CountCutY,
+                                           config.StartXArea,
+                                           config.StartYArea,
+                                           (config.EndXArea - config.StartXArea) / config.CountCutX,
+                                           (config.EndYArea - config.StartYArea) / config.CountCutY);
+
+    DirTask->SetConfig(config);
+    DirTask->SetNet(*Network);
+    DirTask->GenerateLinearSystem();
+}
+
+void Widget::StartSimplexIter() {
+    DirTask->SetMethod(nm::Method::SimpleIter);
+    DirTask->eval();
+}
+
+void Widget::StartCGM() {
+    DirTask->SetMethod(nm::Method::CGM);
+    DirTask->eval();
 }
 
 void Widget::SendDatabtnClick() {
-    // config = Config((InputN->text()).toDouble(),
-    //                 (InputM->text()).toDouble(),
-    //                 (InputEps->text()).toDouble(),
-    //                 (InputMaxStep->text()).toDouble(),
-    //                 InputTask->currentIndex(),
-    //                 InputOmega->text().toDouble());
-    if (config.CountCutX<=0 || config.CountCutY<= 0) {
+    config = Config((InputStartXArea->text()).toDouble(),
+                    (InputEndXArea->text()).toDouble(),
+                    (InputStartYArea->text()).toDouble(),
+                    (InputEndYArea->text()).toDouble(),
+                    (InputN->text()).toDouble(),
+                    (InputM->text()).toDouble(),
+                    (InputMaxStep->text()).toDouble(),
+                    InputTask->currentIndex(),
+                    InputOmega->text().toDouble(),
+                    static_cast<nm::StartApr>(InputStartx->currentIndex() - 1),
+                    (InputEps->text()).toDouble());
+    if (config.CountCutX <= 0 || config.CountCutY <= 0) {
         QMessageBox::critical(this, "Critical Error", "Start point must be > 0");
         return;
     }
+    UpdateDirTask();
     switch (InputTask->currentIndex()) {
     case 0:
         //StartTest(config);
@@ -144,6 +220,15 @@ void Widget::SendDatabtnClick() {
         //StartMain(config);
         break;
     case 2:
+        //StartOscil(config);
+        break;
+    case 3:
+        StartSimplexIter();
+        break;
+    case 4:
+        StartCGM();
+        break;
+    case 5:
         //StartOscil(config);
         break;
     default:

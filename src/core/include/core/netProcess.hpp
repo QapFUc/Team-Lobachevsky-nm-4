@@ -25,7 +25,7 @@ struct Net {
     double step_x;
     double step_y;
 
-    Net();
+    Net()=default;
     Net(const double& x_0, const double& y_0, const double& stepx, const double& stepy) : x_start(x_0), y_start(y_0), step_x(stepx), step_y(stepy) {}
 };
 

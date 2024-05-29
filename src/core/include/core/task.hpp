@@ -45,4 +45,8 @@ public:
     void SetConfig(const Config& config) {
         this->cfg = config;
     }
+
+    double Boundary(const double& x, const double& y) {
+        return fBoundary(x, y, cfg);
+    }
 };

@@ -4,6 +4,7 @@
 #include "widget.h"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <qboxlayout.h>
 #include <qcombobox.h>
@@ -181,17 +182,17 @@ void Widget::InitDirTask() {
     Networkpattern = (new NetPattern());
     Network = new Net();
     auto fb = [](const double& x, const double& y, const Config& config) -> double {
-        if (std::abs(x - config.StartXArea) < ((config.EndXArea - config.StartXArea)/(2*config.CountCutX))) {
-            return (-y*y-y);
+        if (x == config.StartXArea) {
+            return (-y * y + y);
         }
-        if (std::abs(x - config.EndXArea) < ((config.EndXArea - config.StartXArea)/(2*config.CountCutX))) {
-            return (y-y*y);
+        if (x == config.EndXArea) {
+            return (y - y * y);
         }
-        if (std::abs(y - config.StartYArea) < ((config.EndYArea - config.StartYArea)/(2*config.CountCutY))) {
-            return (std::abs(std::sin(M_PI*x)));
+        if (y == config.StartYArea) {
+            return (std::abs(std::sin(M_PI * x)));
         }
-        if (std::abs(y - config.EndYArea) < ((config.EndYArea - config.StartYArea)/(2*config.CountCutY))) {
-            return (std::abs(std::sin(M_PI*x))*std::exp(x));
+        if (y == config.EndYArea) {
+            return (std::abs(std::sin(M_PI * x)) * std::exp(x));
         }
         return 1;
     };
@@ -203,12 +204,14 @@ void Widget::InitDirTask() {
 }
 
 void Widget::UpdateDirTask() {
+    config.CountCutX += 1;
+    config.CountCutY += 1;
     Networkpattern->setMainSpace(config.CountCutX / config.CountCutY);
     *Network = Networkpattern->generateNet(config.CountCutY,
                                            config.StartXArea,
                                            config.StartYArea,
-                                           (config.EndXArea - config.StartXArea) / config.CountCutX,
-                                           (config.EndYArea - config.StartYArea) / config.CountCutY);
+                                           (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
+                                           (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
 
     DirTask->SetConfig(config);
     DirTask->SetNet(*Network);
@@ -309,12 +312,9 @@ void Widget::InitTableTest() {
 
     TableTest_2 = new QTableWidget(0, 0);
 
-
     TableTest_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-
     TableTest_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
 
     TestLayout_2->addWidget(TableTest_2);
 
@@ -330,14 +330,9 @@ void Widget::InitTableTest() {
 
     TableTest_3 = new QTableWidget();
 
-
-
     TableTest_3->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-
     TableTest_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-
 
     TestLayout_3->addWidget(TableTest_3);
 
@@ -351,7 +346,7 @@ void Widget::InitTableMain() {
 
     tabTableMain->setLayout(MainTableLayout);
     QVBoxLayout* MainLayout_1 = new QVBoxLayout();
-    QLabel* MainLabel_1 = new QLabel("Точное решение V(N)(x, y)", tabTableTest);
+    QLabel* MainLabel_1 = new QLabel("Точное решение u(N)(x, y)", tabTableTest);
     MainLayout_1->addWidget(MainLabel_1);
     TableMain_1 = new QTableWidget();
     MainLayout_1->addWidget(TableMain_1);
@@ -361,12 +356,11 @@ void Widget::InitTableMain() {
 
     QVBoxLayout* MainLayout_2 = new QVBoxLayout();
 
-    QLabel* MainLabel_2 = new QLabel("Численное решение V(N)(x, y) в узлах сетки", tabTableTest);
+    QLabel* MainLabel_2 = new QLabel("Численное решение v(N)(x, y) в узлах сетки", tabTableTest);
 
     MainLayout_2->addWidget(MainLabel_2);
 
     TableMain_2 = new QTableWidget();
-
 
     MainLayout_2->addWidget(TableMain_2);
 
@@ -387,75 +381,88 @@ void Widget::InitTableMain() {
 }
 
 void Widget::UpdateTableMain() {
-    std::cout<<"start upd"<<std::endl;
+    std::cout << "start upd" << std::endl;
 
     // Real solve
-    TableMain_1->setColumnCount(config.CountCutY);
-    TableMain_1->setRowCount(config.CountCutX);
-    double stepx = (config.EndXArea-config.StartXArea)/ config.CountCutX;
-    double stepy = (config.EndYArea-config.StartYArea)/ config.CountCutY;
-    for (int row = 0; row < config.CountCutX; ++row) {
-        for (int col = 0; col < config.CountCutY; ++col) {
-            double x = row * stepx;
-            double y = col * stepy;
+    TableMain_1->setColumnCount(config.CountCutX);
+    TableMain_1->setRowCount(config.CountCutY);
+    double stepx = Network->step_x;
+    double stepy = Network->step_y;
+    for (int row = 0; row < config.CountCutY; ++row) {
+        for (int col = 0; col < config.CountCutX; ++col) {
+            double x = col * stepx;
+            double y = row * stepy;
             QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::exp(std::pow(std::sin(M_PI * x * y), 2))));
             TableMain_1->setItem(row, col, item);
         }
     }
-    for (int col = 0; col < config.CountCutY; ++col) {
+    for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText( QString::number(col * stepy));
+        headerItem->setText(QString::number(col * stepx));
         TableMain_1->setHorizontalHeaderItem(col, headerItem);
     }
     TableMain_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    for (int row = 0; row < config.CountCutX; ++row) {
+    for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText( QString::number(row * stepx));
+        headerItem->setText(QString::number(row * stepy));
         TableMain_1->setVerticalHeaderItem(row, headerItem);
     }
 
     // Numeric solve
-    TableMain_2->setColumnCount(config.CountCutY);
-    TableMain_2->setRowCount(config.CountCutX);
-    for (int col = 0; col < config.CountCutX; ++col) {
-        double y = col * stepy;
-        for (int row = 0; row < config.CountCutY; ++row) {
-            double x = row * stepx;
-            QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg((DirTask->Solution())[col*config.CountCutX+row]));
+    TableMain_2->setColumnCount(config.CountCutX);
+    TableMain_2->setRowCount(config.CountCutY);
+    for (size_t row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < config.CountCutX; ++col) {
+            double x = col * stepx;
+            double y = row * stepy;
+            double val = 0.l;
+
+            if (Network->nodes[col][row] == NodeType::BOUND) {
+                val = DirTask->Boundary(x, y);
+            } else if (Network->nodes[col][row] == NodeType::INNER) {
+                val = DirTask->Solution()[(col - 1) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+            }
+
+            QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
             TableMain_2->setItem(row, col, item);
         }
     }
-    for (int col = 0; col < config.CountCutY; ++col) {
+    for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText( QString::number(config.StartYArea+col * stepy));
+        headerItem->setText(QString::number(config.StartXArea + col * stepx));
         TableMain_2->setHorizontalHeaderItem(col, headerItem);
     }
     TableMain_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    for (int row = 0; row < config.CountCutX; ++row) {
+    for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText( QString::number(config.StartXArea+row * stepx));
+        headerItem->setText(QString::number(config.StartXArea + row * stepy));
         TableMain_2->setVerticalHeaderItem(row, headerItem);
     }
     // Numeric - Real solve
-    TableMain_3->setColumnCount(config.CountCutY);
-    TableMain_3->setRowCount(config.CountCutX);
-    for (int row = 0; row < config.CountCutX; ++row) {
-        for (int col = 0; col < config.CountCutY; ++col) {
-            double x = row * stepx;
-            double y = col * stepy;
+    TableMain_3->setColumnCount(config.CountCutX);
+    TableMain_3->setRowCount(config.CountCutY);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        for (int col = 0; col < config.CountCutX; ++col) {
+            double x = col * stepx;
+            double y = row * stepy;
             QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::exp(std::pow(std::sin(M_PI * x * y), 2))));
             TableMain_3->setItem(row, col, item);
         }
     }
-    for (int col = 0; col < config.CountCutY; ++col) {
+    for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText( QString::number(col * stepy));
+        headerItem->setText(QString::number(col * stepx));
         TableMain_3->setHorizontalHeaderItem(col, headerItem);
     }
     TableMain_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    for (int row = 0; row < config.CountCutX; ++row) {
+    for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText( QString::number(row * stepx));
+        headerItem->setText(QString::number(row * stepy));
         TableMain_3->setVerticalHeaderItem(row, headerItem);
     }
 
@@ -772,9 +779,9 @@ void Widget::InitGraphsMain() {
     Maingraph3D->axisZ()->setTitle("Z Axis");
 
     QLinearGradient gradient;
-    gradient.setColorAt(0.0, Qt::blue);  // Low z-values
-    gradient.setColorAt(0.5, Qt::green); // Mid z-values
-    gradient.setColorAt(1.0, Qt::red);   // High z-values
+    gradient.setColorAt(0.0, Qt::blue);   // Low z-values
+    gradient.setColorAt(0.5, Qt::green);  // Mid z-values
+    gradient.setColorAt(1.0, Qt::red);    // High z-values
 
     Mainseries->setBaseGradient(gradient);
     Mainseries->setColorStyle(Q3DTheme::ColorStyleRangeGradient);
@@ -793,12 +800,26 @@ void Widget::UpdateGraphsMain() {
     double stepx = (config.EndXArea - config.StartXArea) / config.CountCutX;
     double stepy = (config.EndYArea - config.StartYArea) / config.CountCutY;
 
-    for (int row = 0; row < config.CountCutX; ++row) {
-        QSurfaceDataRow* MaindataRow = new QSurfaceDataRow(config.CountCutY);
-        double x = config.StartXArea + row * stepx;
-        for (int col = 0; col < config.CountCutY; ++col) {
-            double y = config.StartYArea + col * stepy;
-            (*MaindataRow)[col] = QVector3D(config.StartXArea+x, config.StartYArea+y, (DirTask->Solution())[col*config.CountCutX+row]);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        QSurfaceDataRow* MaindataRow = new QSurfaceDataRow(config.CountCutX);
+
+        for (int col = 0; col < config.CountCutX; ++col) {
+            double x = config.StartXArea + col * stepx;
+            double y = config.StartYArea + row * stepy;
+            double val = 0.l;
+
+            if (Network->nodes[col][row] == NodeType::BOUND) {
+                val = DirTask->Boundary(x, y);
+            } else if (Network->nodes[col][row] == NodeType::INNER) {
+                val = DirTask->Solution()[(col - 1) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+            }
+            (*MaindataRow)[col] =
+                QVector3D(config.StartXArea + x, config.StartYArea + y, val);
         }
         MaindataArray->append(MaindataRow);
     }

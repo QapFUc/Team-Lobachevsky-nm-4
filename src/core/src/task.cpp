@@ -11,6 +11,8 @@
 #include <vector>
 
 void DirichletTask::GenerateLinearSystem() {
+    std::vector<double> matrix;
+    std::vector<double> rhsv;
     size_t width = net.nodes.size();
     size_t height = net.nodes[0].size();
     double invsqH = 1. / net.step_x;
@@ -68,10 +70,13 @@ void DirichletTask::GenerateLinearSystem() {
                 }
 
                 row[2] = -2 * (invsqH + invsqK);
-                lsmatrix.insert(lsmatrix.end(), row.begin(), row.end());
-                lsrhs.push_back(rhs);
+                matrix.insert(matrix.end(), row.begin(), row.end());
+                rhsv.push_back(rhs);
             }
         }
+
+        lsmatrix = matrix;
+        lsrhs = rhsv;
     }
 }
 

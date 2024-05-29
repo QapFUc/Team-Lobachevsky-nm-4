@@ -37,10 +37,11 @@ public:
     void CreateGraphsMain();
     void CreateTable2();
     void CreateGraphs();
-    void StartSimplexIter();
-    void StartCGM();
+    static void StartSimplexIter(DirichletTask& dt);
+    static void StartCGM(DirichletTask& dt);
     void InitDirTask();
-    void UpdateDirTask();
+    static void UpdateDirTask(Config& cfg, DirichletTask& dt, NetPattern& np, Net& net);
+    static void UpdateAllData(Config& cfg, DirichletTask& dt, NetPattern& np, Net& net);
 private slots:
 
     void SendDatabtnClick();

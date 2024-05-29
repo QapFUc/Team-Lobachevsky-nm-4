@@ -819,7 +819,7 @@ void Widget::UpdateGraphsMain() {
                 val = DirTask->Solution()[(col - 1) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
             }
             (*MaindataRow)[col] =
-                QVector3D(config.StartXArea + x, config.StartYArea + y, val);
+                QVector3D( x, val, y);
         }
         MaindataArray->append(MaindataRow);
     }

@@ -22,6 +22,7 @@ enum struct Status {
 enum struct Method {
     SimpleIter = 0,
     CGM = 1,
+    SOR = 2,
 };
 
 enum struct StartApr {

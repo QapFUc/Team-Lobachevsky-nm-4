@@ -12,7 +12,8 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     nm::Profiler nest = prof.nest(nm::GET_CURRENT_SCOPE());
     NetPattern pat = ImportNetPattern(fname);
     LOG_INFO_CLI("Got pattern");
-    Net net = pat.generateNet(1000, 0, 0, 0.1, 0.1);
+    size_t n = 100;
+    Net net = pat.generateNet(n, 0, 0, 1.l / n, 1.l / n);
 
     LOG_INFO_CLI("Net generated");
 
@@ -38,9 +39,10 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     Config cfg;
     cfg.startX = nm::StartApr::Zeros;
 
-    cfg.tolerance = 1e-7;
+    cfg.tolerance = 1e-4;
     cfg.Max_N = 100000;
-
+    cfg.CountCutX = n;
+    cfg.CountCutY = n;
 
     DirichletTask dt(fb, fr, net, cfg);
 
@@ -78,7 +80,7 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     sol1 = dt.Solution();
 
     std::cout << "CGM solution\n";
-    for (size_t i = 0; i < 100; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         std::cout << dt.Solution()[i] << '\n';
     }
 
@@ -89,8 +91,19 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     sol2 = dt.Solution();
 
     std::cout << "SIM solution\n";
-    for (auto& x : sol2) {
-        std::cout << x << '\n';
+    for (size_t i = 0; i < 10; ++i) {
+        std::cout << dt.Solution()[i] << '\n';
+    }
+
+    dt.SetMethod(nm::Method::SOR);
+    dt.eval();
+
+    std::vector<double> sol3(dt.Solution().size());
+    sol3 = dt.Solution();
+
+    std::cout << "SOR solution\n";
+    for (size_t i = 0; i < 10; ++i) {
+        std::cout << dt.Solution()[i] << '\n';
     }
 
     double diff = 0.l;
@@ -98,10 +111,17 @@ static void GenLSETestFunc(const std::string& fname, nm::Profiler& prof) {
     for (size_t i = 0; i < sol1.size(); ++i) {
         curr_diff = std::abs(sol1[i] - sol2[i]);
         if (curr_diff > diff)
-             diff = curr_diff;
-     }
+            diff = curr_diff;
+    }
 
-     std::cout << "Diff betw CGM and SIM: " << diff << '\n';
+    std::cout << "Diff betw CGM and SIM: " << diff << '\n';
+    for (size_t i = 0; i < sol3.size(); ++i) {
+        curr_diff = std::abs(sol1[i] - sol3[i]);
+        if (curr_diff > diff)
+            diff = curr_diff;
+    }
+
+    std::cout << "Diff betw CGM and SOR: " << diff << '\n';
 }
 
 int main(int argc, char* argv[]) {

@@ -4,7 +4,9 @@
 #include "widget.h"
 
 #include <QtCharts>
+#include <QtDataVisualization>
 #include <QtWidgets>
+#include <functional>
 #include <qboxlayout.h>
 #include <qcombobox.h>
 #include <qlayoutitem.h>
@@ -14,8 +16,7 @@
 #include <qstyleoption.h>
 #include <qtextedit.h>
 #include <qwidget.h>
-#include <QtDataVisualization>
-
+#include <thread>
 
 Widget::Widget(QWidget* parent) : QWidget(parent) {
     setWindowTitle("LobachevskyLab");
@@ -61,7 +62,6 @@ Widget::Widget(QWidget* parent) : QWidget(parent) {
     tab5 = new QWidget();
     tab6 = new QWidget();
     tab7 = new QWidget();
-
 
     tabWidget->addTab(tabTask, tr("Ввод задачи и параметров"));
     tabWidget->addTab(tab2, tr("Таблицы тестовой задачи"));
@@ -193,27 +193,55 @@ void Widget::InitDirTask() {
     DirTask = new DirichletTask(fb, fr, *Network, config);
 }
 
-void Widget::UpdateDirTask() {
-    Networkpattern->setMainSpace(config.CountCutX / config.CountCutY);
-    *Network = Networkpattern->generateNet(config.CountCutY,
+void Widget::UpdateDirTask(Config& config, DirichletTask& dt, NetPattern& np, Net& net) {
+    np.setMainSpace(config.CountCutX / config.CountCutY);
+    net = np.generateNet(config.CountCutY,
                                            config.StartXArea,
                                            config.StartYArea,
                                            (config.EndXArea - config.StartXArea) / config.CountCutX,
                                            (config.EndYArea - config.StartYArea) / config.CountCutY);
 
-    DirTask->SetConfig(config);
-    DirTask->SetNet(*Network);
-    DirTask->GenerateLinearSystem();
+   dt.SetConfig(config);
+   dt.SetNet(net);
+   dt.GenerateLinearSystem();
 }
 
-void Widget::StartSimplexIter() {
-    DirTask->SetMethod(nm::Method::SimpleIter);
-    DirTask->eval();
+void Widget::StartSimplexIter(DirichletTask& dt) {
+    dt.SetMethod(nm::Method::SimpleIter);
+    dt.eval();
 }
 
-void Widget::StartCGM() {
-    DirTask->SetMethod(nm::Method::CGM);
-    DirTask->eval();
+void Widget::StartCGM(DirichletTask& dt) {
+    dt.SetMethod(nm::Method::CGM);
+    dt.eval();
+}
+
+void Widget::UpdateAllData(Config& cfg, DirichletTask& dt, NetPattern& np, Net& net) {
+    UpdateDirTask(cfg, dt, np, net);
+
+    switch (cfg.Task) {
+    case 0:
+        //StartTest(config);
+        break;
+    case 1:
+        //StartMain(config);
+        break;
+    case 2:
+        //StartOscil(config);
+        break;
+    case 3:
+        StartSimplexIter(dt);
+        break;
+    case 4:
+        StartCGM(dt);
+        break;
+    case 5:
+        //StartOscil(config);
+        break;
+    default:
+        //StartTest(config);
+        break;
+    }
 }
 
 void Widget::SendDatabtnClick() {
@@ -232,34 +260,12 @@ void Widget::SendDatabtnClick() {
         QMessageBox::critical(this, "Critical Error", "Start point must be > 0");
         return;
     }
-    UpdateDirTask();
-    switch (InputTask->currentIndex()) {
-    case 0:
-        //StartTest(config);
-        break;
-    case 1:
-        //StartMain(config);
-        break;
-    case 2:
-        //StartOscil(config);
-        break;
-    case 3:
-        StartSimplexIter();
-        break;
-    case 4:
-        StartCGM();
-        break;
-    case 5:
-        //StartOscil(config);
-        break;
-    default:
-        //StartTest(config);
-        break;
-    }
+    
+    std::thread thr(UpdateAllData, std::ref(config), std::ref(*DirTask), std::ref(*Networkpattern), std::ref(*Network));
+    thr.detach();
 }
 
 void Widget::CreateTableTest(int x, int y) {
-
     TestTableLayout = new QVBoxLayout();
 
     tab2->setLayout(TestTableLayout);
@@ -299,7 +305,7 @@ void Widget::CreateTableTest(int x, int y) {
 
     TestTableLayout->addLayout(TestLayout_1);
 
-    // 2 table 
+    // 2 table
 
     QVBoxLayout* TestLayout_2 = new QVBoxLayout();
 
@@ -336,7 +342,7 @@ void Widget::CreateTableTest(int x, int y) {
 
     TestTableLayout->addLayout(TestLayout_2);
 
-    // table 3 
+    // table 3
 
     QVBoxLayout* TestLayout_3 = new QVBoxLayout();
 
@@ -414,7 +420,7 @@ void Widget::CreateTableMain(int x, int y) {
 
     MainTableLayout->addLayout(MainLayout_1);
 
-    // 2 table 
+    // 2 table
 
     QVBoxLayout* MainLayout_2 = new QVBoxLayout();
 
@@ -451,7 +457,7 @@ void Widget::CreateTableMain(int x, int y) {
 
     MainTableLayout->addLayout(MainLayout_2);
 
-    // table 3 
+    // table 3
 
     QVBoxLayout* MainLayout_3 = new QVBoxLayout();
 
@@ -490,91 +496,91 @@ void Widget::CreateTableMain(int x, int y) {
 }
 
 void Widget::CreateInfoTest() {
-
     TestInfoLayout = new QVBoxLayout();
-    QHBoxLayout *TestInfoLayout_1 = new QHBoxLayout();
-    QHBoxLayout *TestInfoLayout_2 = new QHBoxLayout();
-    QHBoxLayout *TestInfoLayout_3 = new QHBoxLayout();
-    QHBoxLayout *TestInfoLayout_4 = new QHBoxLayout();
-    QHBoxLayout *TestInfoLayout_5 = new QHBoxLayout();
-    QHBoxLayout *TestInfoLayout_6 = new QHBoxLayout();
-    QHBoxLayout *TestInfoLayout_7 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_1 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_2 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_3 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_4 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_5 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_6 = new QHBoxLayout();
+    QHBoxLayout* TestInfoLayout_7 = new QHBoxLayout();
     tab4->setLayout(TestInfoLayout);
 
-    QLabel *TestLabelInfo_1 = new QLabel("Для решения тестовой задачи использованы сетка с числом разбиений по x n = ", tab4);
-    QLineEdit *TestLineEditInfo_1= new QLineEdit();
+    QLabel* TestLabelInfo_1 = new QLabel("Для решения тестовой задачи использованы сетка с числом разбиений по x n = ", tab4);
+    QLineEdit* TestLineEditInfo_1 = new QLineEdit();
     TestLineEditInfo_1->setMaximumWidth(250);
     TestInfoLayout_1->addWidget(TestLabelInfo_1, 0, Qt::AlignRight);
     TestInfoLayout_1->addWidget(TestLineEditInfo_1, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_2 = new QLabel(" и числом разбиений по y m = ", tab4);    
-    QLineEdit *TestLineEditInfo_2 = new QLineEdit();
+    QLabel* TestLabelInfo_2 = new QLabel(" и числом разбиений по y m = ", tab4);
+    QLineEdit* TestLineEditInfo_2 = new QLineEdit();
     TestLineEditInfo_2->setMaximumWidth(250);
     TestInfoLayout_1->addWidget(TestLabelInfo_2, 0, Qt::AlignRight);
     TestInfoLayout_1->addWidget(TestLineEditInfo_2, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_3 = new QLabel(" метод верхней релаксации с параметром w = ", tab4);    
-    QLineEdit *TestLineEditInfo_3 = new QLineEdit();
+    QLabel* TestLabelInfo_3 = new QLabel(" метод верхней релаксации с параметром w = ", tab4);
+    QLineEdit* TestLineEditInfo_3 = new QLineEdit();
     TestLineEditInfo_3->setMaximumWidth(250);
     TestInfoLayout_2->addWidget(TestLabelInfo_3, 0, Qt::AlignRight);
     TestInfoLayout_2->addWidget(TestLineEditInfo_3, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_4 = new QLabel(" применены критерии остановки по точности E_мет =  ", tab4);    
-    QLineEdit *TestLineEditInfo_4 = new QLineEdit();
+    QLabel* TestLabelInfo_4 = new QLabel(" применены критерии остановки по точности E_мет =  ", tab4);
+    QLineEdit* TestLineEditInfo_4 = new QLineEdit();
     TestLineEditInfo_4->setMaximumWidth(250);
     TestInfoLayout_2->addWidget(TestLabelInfo_4, 0, Qt::AlignRight);
     TestInfoLayout_2->addWidget(TestLineEditInfo_4, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_5 = new QLabel(" и по числу итераций N_max =  ", tab4);    
-    QLineEdit *TestLineEditInfo_5 = new QLineEdit();
+    QLabel* TestLabelInfo_5 = new QLabel(" и по числу итераций N_max =  ", tab4);
+    QLineEdit* TestLineEditInfo_5 = new QLineEdit();
     TestLineEditInfo_5->setMaximumWidth(250);
     TestInfoLayout_2->addWidget(TestLabelInfo_5, 0, Qt::AlignRight);
     TestInfoLayout_2->addWidget(TestLineEditInfo_5, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_6 = new QLabel(" На решение схемы (СЛАУ) затрачено итераций N = ", tab4);    
-    QLineEdit *TestLineEditInfo_6 = new QLineEdit();
+    QLabel* TestLabelInfo_6 = new QLabel(" На решение схемы (СЛАУ) затрачено итераций N = ", tab4);
+    QLineEdit* TestLineEditInfo_6 = new QLineEdit();
     TestLineEditInfo_6->setMaximumWidth(250);
     TestInfoLayout_3->addWidget(TestLabelInfo_6, 0, Qt::AlignRight);
     TestInfoLayout_3->addWidget(TestLineEditInfo_6, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_7 = new QLabel(" и достигнута точность итерационного метода E(N) = ", tab4);    
-    QLineEdit *TestLineEditInfo_7 = new QLineEdit();
+    QLabel* TestLabelInfo_7 = new QLabel(" и достигнута точность итерационного метода E(N) = ", tab4);
+    QLineEdit* TestLineEditInfo_7 = new QLineEdit();
     TestLineEditInfo_7->setMaximumWidth(250);
     TestInfoLayout_3->addWidget(TestLabelInfo_7, 0, Qt::AlignRight);
     TestInfoLayout_3->addWidget(TestLineEditInfo_7, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_8 = new QLabel("Схема (СЛАУ) решена с невязкой ||R(N)|| = ", tab4);    
-    QLineEdit *TestLineEditInfo_8 = new QLineEdit();
+    QLabel* TestLabelInfo_8 = new QLabel("Схема (СЛАУ) решена с невязкой ||R(N)|| = ", tab4);
+    QLineEdit* TestLineEditInfo_8 = new QLineEdit();
     TestLineEditInfo_8->setMaximumWidth(250);
     TestInfoLayout_4->addWidget(TestLabelInfo_8, 0, Qt::AlignRight);
     TestInfoLayout_4->addWidget(TestLineEditInfo_8, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_9 = new QLabel(" для невязки СЛАУ использована норма = ", tab4);    
-    QLineEdit *TestLineEditInfo_9 = new QLineEdit();
+    QLabel* TestLabelInfo_9 = new QLabel(" для невязки СЛАУ использована норма = ", tab4);
+    QLineEdit* TestLineEditInfo_9 = new QLineEdit();
     TestLineEditInfo_9->setMaximumWidth(250);
     TestInfoLayout_4->addWidget(TestLabelInfo_9, 0, Qt::AlignRight);
     TestInfoLayout_4->addWidget(TestLineEditInfo_9, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_10 = new QLabel("Тестовая задача должна быть решена с погрешностью не более E = 0.5 * 10^(-6), задача решена с погрешностью = ", tab4);    
-    QLineEdit *TestLineEditInfo_10 = new QLineEdit();
+    QLabel* TestLabelInfo_10 =
+        new QLabel("Тестовая задача должна быть решена с погрешностью не более E = 0.5 * 10^(-6), задача решена с погрешностью = ", tab4);
+    QLineEdit* TestLineEditInfo_10 = new QLineEdit();
     TestLineEditInfo_10->setMaximumWidth(250);
     TestInfoLayout_5->addWidget(TestLabelInfo_10, 0, Qt::AlignRight);
     TestInfoLayout_5->addWidget(TestLineEditInfo_10, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_11 = new QLabel("Максимальное отклонение точного и численного решений наблюдается в узле x = ", tab4);    
-    QLineEdit *TestLineEditInfo_11 = new QLineEdit();
+    QLabel* TestLabelInfo_11 = new QLabel("Максимальное отклонение точного и численного решений наблюдается в узле x = ", tab4);
+    QLineEdit* TestLineEditInfo_11 = new QLineEdit();
     TestLineEditInfo_11->setMaximumWidth(250);
     TestInfoLayout_6->addWidget(TestLabelInfo_11, 0, Qt::AlignRight);
     TestInfoLayout_6->addWidget(TestLineEditInfo_11, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_12 = new QLabel(" y = ", tab4);    
-    QLineEdit *TestLineEditInfo_12 = new QLineEdit();
+    QLabel* TestLabelInfo_12 = new QLabel(" y = ", tab4);
+    QLineEdit* TestLineEditInfo_12 = new QLineEdit();
     TestLineEditInfo_12->setMaximumWidth(250);
     TestInfoLayout_6->addWidget(TestLabelInfo_12, 0, Qt::AlignRight);
     TestInfoLayout_6->addWidget(TestLineEditInfo_12, 0, Qt::AlignLeft);
 
-    QLabel *TestLabelInfo_13 = new QLabel("В качестве начального приближения использовано : ", tab4);    
-    QLineEdit *TestLineEditInfo_13 = new QLineEdit();
+    QLabel* TestLabelInfo_13 = new QLabel("В качестве начального приближения использовано : ", tab4);
+    QLineEdit* TestLineEditInfo_13 = new QLineEdit();
     TestLineEditInfo_13->setMaximumWidth(250);
     TestInfoLayout_7->addWidget(TestLabelInfo_13, 0, Qt::AlignRight);
     TestInfoLayout_7->addWidget(TestLineEditInfo_13, 0, Qt::AlignLeft);
@@ -589,143 +595,145 @@ void Widget::CreateInfoTest() {
 }
 
 void Widget::CreateInfoMain() {
-
     MainInfoLayout = new QVBoxLayout();
-    QHBoxLayout *MainInfoLayout_1 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_2 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_3 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_4 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_5 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_6 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_7 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_8 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_9 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_10 = new QHBoxLayout();
-    QHBoxLayout *MainInfoLayout_11 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_1 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_2 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_3 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_4 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_5 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_6 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_7 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_8 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_9 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_10 = new QHBoxLayout();
+    QHBoxLayout* MainInfoLayout_11 = new QHBoxLayout();
     tab7->setLayout(MainInfoLayout);
 
-    QLabel *MainLabelInfo_1 = new QLabel("Для решения основной задачи использованы сетка с числом разбиений по x n = ", tab7);
-    QLineEdit *MainLineEditInfo_1= new QLineEdit();
+    QLabel* MainLabelInfo_1 = new QLabel("Для решения основной задачи использованы сетка с числом разбиений по x n = ", tab7);
+    QLineEdit* MainLineEditInfo_1 = new QLineEdit();
     MainLineEditInfo_1->setMaximumWidth(250);
     MainInfoLayout_1->addWidget(MainLabelInfo_1, 0, Qt::AlignRight);
     MainInfoLayout_1->addWidget(MainLineEditInfo_1, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_2 = new QLabel(" и числом разбиений по y m = ", tab7);    
-    QLineEdit *MainLineEditInfo_2 = new QLineEdit();
+    QLabel* MainLabelInfo_2 = new QLabel(" и числом разбиений по y m = ", tab7);
+    QLineEdit* MainLineEditInfo_2 = new QLineEdit();
     MainLineEditInfo_2->setMaximumWidth(250);
     MainInfoLayout_1->addWidget(MainLabelInfo_2, 0, Qt::AlignRight);
     MainInfoLayout_1->addWidget(MainLineEditInfo_2, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_3 = new QLabel(" метод верхней релаксации с параметром w = ", tab7);    
-    QLineEdit *MainLineEditInfo_3 = new QLineEdit();
+    QLabel* MainLabelInfo_3 = new QLabel(" метод верхней релаксации с параметром w = ", tab7);
+    QLineEdit* MainLineEditInfo_3 = new QLineEdit();
     MainLineEditInfo_3->setMaximumWidth(250);
     MainInfoLayout_2->addWidget(MainLabelInfo_3, 0, Qt::AlignRight);
     MainInfoLayout_2->addWidget(MainLineEditInfo_3, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_4 = new QLabel(" применены критерии остановки по точности E_мет =  ", tab7);    
-    QLineEdit *MainLineEditInfo_4 = new QLineEdit();
+    QLabel* MainLabelInfo_4 = new QLabel(" применены критерии остановки по точности E_мет =  ", tab7);
+    QLineEdit* MainLineEditInfo_4 = new QLineEdit();
     MainLineEditInfo_4->setMaximumWidth(250);
     MainInfoLayout_2->addWidget(MainLabelInfo_4, 0, Qt::AlignRight);
     MainInfoLayout_2->addWidget(MainLineEditInfo_4, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_5 = new QLabel(" и по числу итераций N_max =  ", tab7);    
-    QLineEdit *MainLineEditInfo_5 = new QLineEdit();
+    QLabel* MainLabelInfo_5 = new QLabel(" и по числу итераций N_max =  ", tab7);
+    QLineEdit* MainLineEditInfo_5 = new QLineEdit();
     MainLineEditInfo_5->setMaximumWidth(250);
     MainInfoLayout_2->addWidget(MainLabelInfo_5, 0, Qt::AlignRight);
     MainInfoLayout_2->addWidget(MainLineEditInfo_5, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_6 = new QLabel(" На решение схемы (СЛАУ) затрачено итераций N = ", tab7);    
-    QLineEdit *MainLineEditInfo_6 = new QLineEdit();
+    QLabel* MainLabelInfo_6 = new QLabel(" На решение схемы (СЛАУ) затрачено итераций N = ", tab7);
+    QLineEdit* MainLineEditInfo_6 = new QLineEdit();
     MainLineEditInfo_6->setMaximumWidth(250);
     MainInfoLayout_3->addWidget(MainLabelInfo_6, 0, Qt::AlignRight);
     MainInfoLayout_3->addWidget(MainLineEditInfo_6, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_7 = new QLabel(" и достигнута точность итерационного метода E(N) = ", tab7);    
-    QLineEdit *MainLineEditInfo_7 = new QLineEdit();
+    QLabel* MainLabelInfo_7 = new QLabel(" и достигнута точность итерационного метода E(N) = ", tab7);
+    QLineEdit* MainLineEditInfo_7 = new QLineEdit();
     MainLineEditInfo_7->setMaximumWidth(250);
     MainInfoLayout_3->addWidget(MainLabelInfo_7, 0, Qt::AlignRight);
     MainInfoLayout_3->addWidget(MainLineEditInfo_7, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_8 = new QLabel("Схема (СЛАУ) решена с невязкой ||R(N)|| = ", tab7);    
-    QLineEdit *MainLineEditInfo_8 = new QLineEdit();
+    QLabel* MainLabelInfo_8 = new QLabel("Схема (СЛАУ) решена с невязкой ||R(N)|| = ", tab7);
+    QLineEdit* MainLineEditInfo_8 = new QLineEdit();
     MainLineEditInfo_8->setMaximumWidth(250);
     MainInfoLayout_4->addWidget(MainLabelInfo_8, 0, Qt::AlignRight);
     MainInfoLayout_4->addWidget(MainLineEditInfo_8, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_9 = new QLabel(" для невязки СЛАУ использована норма = ", tab7);    
-    QLineEdit *MainLineEditInfo_9 = new QLineEdit();
+    QLabel* MainLabelInfo_9 = new QLabel(" для невязки СЛАУ использована норма = ", tab7);
+    QLineEdit* MainLineEditInfo_9 = new QLineEdit();
     MainLineEditInfo_9->setMaximumWidth(250);
     MainInfoLayout_4->addWidget(MainLabelInfo_9, 0, Qt::AlignRight);
     MainInfoLayout_4->addWidget(MainLineEditInfo_9, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_11 = new QLabel("Для контроля точности решения использована сетка с половинным шагом, метод верхней релаксиции с параметром w_2 = ", tab7);    
-    QLineEdit *MainLineEditInfo_11 = new QLineEdit();
+    QLabel* MainLabelInfo_11 =
+        new QLabel("Для контроля точности решения использована сетка с половинным шагом, метод верхней релаксиции с параметром w_2 = ", tab7);
+    QLineEdit* MainLineEditInfo_11 = new QLineEdit();
     MainLineEditInfo_11->setMaximumWidth(250);
     MainInfoLayout_6->addWidget(MainLabelInfo_11, 0, Qt::AlignRight);
     MainInfoLayout_6->addWidget(MainLineEditInfo_11, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_12 = new QLabel(" применены критерии остановки до точности E_мет-2 = ", tab7);    
-    QLineEdit *MainLineEditInfo_12 = new QLineEdit();
+    QLabel* MainLabelInfo_12 = new QLabel(" применены критерии остановки до точности E_мет-2 = ", tab7);
+    QLineEdit* MainLineEditInfo_12 = new QLineEdit();
     MainLineEditInfo_12->setMaximumWidth(250);
     MainInfoLayout_6->addWidget(MainLabelInfo_12, 0, Qt::AlignRight);
     MainInfoLayout_6->addWidget(MainLineEditInfo_12, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_13 = new QLabel(" и по числу итераций N_max-2 = ", tab7);    
-    QLineEdit *MainLineEditInfo_13 = new QLineEdit();
+    QLabel* MainLabelInfo_13 = new QLabel(" и по числу итераций N_max-2 = ", tab7);
+    QLineEdit* MainLineEditInfo_13 = new QLineEdit();
     MainLineEditInfo_13->setMaximumWidth(250);
     MainInfoLayout_6->addWidget(MainLabelInfo_13, 0, Qt::AlignRight);
     MainInfoLayout_6->addWidget(MainLineEditInfo_13, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_14 = new QLabel("На решение задачи (СЛАУ) затрачено итераций N2 = ", tab7);    
-    QLineEdit *MainLineEditInfo_14 = new QLineEdit();
+    QLabel* MainLabelInfo_14 = new QLabel("На решение задачи (СЛАУ) затрачено итераций N2 = ", tab7);
+    QLineEdit* MainLineEditInfo_14 = new QLineEdit();
     MainLineEditInfo_14->setMaximumWidth(250);
     MainInfoLayout_7->addWidget(MainLabelInfo_14, 0, Qt::AlignRight);
     MainInfoLayout_7->addWidget(MainLineEditInfo_14, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_15 = new QLabel(" и достигнута точность итерационного метода E(N2) = ", tab7);    
-    QLineEdit *MainLineEditInfo_15 = new QLineEdit();
+    QLabel* MainLabelInfo_15 = new QLabel(" и достигнута точность итерационного метода E(N2) = ", tab7);
+    QLineEdit* MainLineEditInfo_15 = new QLineEdit();
     MainLineEditInfo_15->setMaximumWidth(250);
     MainInfoLayout_7->addWidget(MainLabelInfo_15, 0, Qt::AlignRight);
     MainInfoLayout_7->addWidget(MainLineEditInfo_15, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_16 = new QLabel("Схема (СЛАУ) на сетке с половинным шагом решена с невязкой ||R(N2)|| = ", tab7);    
-    QLineEdit *MainLineEditInfo_16 = new QLineEdit();
+    QLabel* MainLabelInfo_16 = new QLabel("Схема (СЛАУ) на сетке с половинным шагом решена с невязкой ||R(N2)|| = ", tab7);
+    QLineEdit* MainLineEditInfo_16 = new QLineEdit();
     MainLineEditInfo_16->setMaximumWidth(250);
     MainInfoLayout_8->addWidget(MainLabelInfo_16, 0, Qt::AlignRight);
     MainInfoLayout_8->addWidget(MainLineEditInfo_16, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_17 = new QLabel(" использована норма = ", tab7);    
-    QLineEdit *MainLineEditInfo_17 = new QLineEdit();
+    QLabel* MainLabelInfo_17 = new QLabel(" использована норма = ", tab7);
+    QLineEdit* MainLineEditInfo_17 = new QLineEdit();
     MainLineEditInfo_17->setMaximumWidth(250);
     MainInfoLayout_8->addWidget(MainLabelInfo_17, 0, Qt::AlignRight);
     MainInfoLayout_8->addWidget(MainLineEditInfo_17, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_18 = new QLabel("Основная задача должна быть решена с точностью не хуже чем E = 0.5 * 10^(-6), основная задача решена с точностью = ", tab7);    
-    QLineEdit *MainLineEditInfo_18 = new QLineEdit();
+    QLabel* MainLabelInfo_18 =
+        new QLabel("Основная задача должна быть решена с точностью не хуже чем E = 0.5 * 10^(-6), основная задача решена с точностью = ", tab7);
+    QLineEdit* MainLineEditInfo_18 = new QLineEdit();
     MainLineEditInfo_18->setMaximumWidth(250);
     MainInfoLayout_9->addWidget(MainLabelInfo_18, 0, Qt::AlignRight);
     MainInfoLayout_9->addWidget(MainLineEditInfo_18, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_19 = new QLabel("максимальное отклонение численных решений на основной сетке и сетке с половинным шагом наблюдается в узле x = ", tab7);    
-    QLineEdit *MainLineEditInfo_19 = new QLineEdit();
+    QLabel* MainLabelInfo_19 =
+        new QLabel("максимальное отклонение численных решений на основной сетке и сетке с половинным шагом наблюдается в узле x = ", tab7);
+    QLineEdit* MainLineEditInfo_19 = new QLineEdit();
     MainLineEditInfo_19->setMaximumWidth(250);
     MainInfoLayout_10->addWidget(MainLabelInfo_19, 0, Qt::AlignRight);
     MainInfoLayout_10->addWidget(MainLineEditInfo_19, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_20 = new QLabel(" y = ", tab7);    
-    QLineEdit *MainLineEditInfo_20 = new QLineEdit();
+    QLabel* MainLabelInfo_20 = new QLabel(" y = ", tab7);
+    QLineEdit* MainLineEditInfo_20 = new QLineEdit();
     MainLineEditInfo_20->setMaximumWidth(250);
     MainInfoLayout_10->addWidget(MainLabelInfo_20, 0, Qt::AlignRight);
     MainInfoLayout_10->addWidget(MainLineEditInfo_20, 0, Qt::AlignLeft);
-    
-    QLabel *MainLabelInfo_21 = new QLabel("В качестве начального приближения на основной сетке использовано : ", tab7);    
-    QLineEdit *MainLineEditInfo_21 = new QLineEdit();
+
+    QLabel* MainLabelInfo_21 = new QLabel("В качестве начального приближения на основной сетке использовано : ", tab7);
+    QLineEdit* MainLineEditInfo_21 = new QLineEdit();
     MainLineEditInfo_21->setMaximumWidth(250);
     MainInfoLayout_11->addWidget(MainLabelInfo_21, 0, Qt::AlignRight);
     MainInfoLayout_11->addWidget(MainLineEditInfo_21, 0, Qt::AlignLeft);
 
-    QLabel *MainLabelInfo_22 = new QLabel(" на сетке с половинным шагом использовано : ", tab7);    
-    QLineEdit *MainLineEditInfo_22 = new QLineEdit();
+    QLabel* MainLabelInfo_22 = new QLabel(" на сетке с половинным шагом использовано : ", tab7);
+    QLineEdit* MainLineEditInfo_22 = new QLineEdit();
     MainLineEditInfo_22->setMaximumWidth(250);
     MainInfoLayout_11->addWidget(MainLabelInfo_22, 0, Qt::AlignRight);
     MainInfoLayout_11->addWidget(MainLineEditInfo_22, 0, Qt::AlignLeft);
@@ -744,18 +752,18 @@ void Widget::CreateInfoMain() {
 }
 
 void Widget::CreateGraphsTest() {
-    Q3DSurface *Testgraph3D = new Q3DSurface();
-    QWidget *container = QWidget::createWindowContainer(Testgraph3D);
+    Q3DSurface* Testgraph3D = new Q3DSurface();
+    QWidget* container = QWidget::createWindowContainer(Testgraph3D);
     tab3->setLayout(new QVBoxLayout());
     tab3->layout()->addWidget(container);
 
     // Создание графика
-    QSurfaceDataProxy *TestdataProxy = new QSurfaceDataProxy();
-    QSurface3DSeries *Testseries = new QSurface3DSeries(TestdataProxy);
-    
+    QSurfaceDataProxy* TestdataProxy = new QSurfaceDataProxy();
+    QSurface3DSeries* Testseries = new QSurface3DSeries(TestdataProxy);
+
     // Создание данных для графика
-    QSurfaceDataArray *TestdataArray = new QSurfaceDataArray();
-    QSurfaceDataRow *TestdataRow = new QSurfaceDataRow();
+    QSurfaceDataArray* TestdataArray = new QSurfaceDataArray();
+    QSurfaceDataRow* TestdataRow = new QSurfaceDataRow();
     *TestdataRow << QVector3D(0, 0, 1) << QVector3D(1, 0, 2) << QVector3D(2, 0, 3);
     TestdataArray->append(TestdataRow);
     TestdataProxy->resetArray(TestdataArray);
@@ -773,22 +781,21 @@ void Widget::CreateGraphsTest() {
 
     // Настройка камеры для вращения графика
     Testgraph3D->scene()->activeCamera()->setCameraPosition(15, 15, 15);
-
 }
 
 void Widget::CreateGraphsMain() {
-    Q3DSurface *Maingraph3D = new Q3DSurface();
-    QWidget *container = QWidget::createWindowContainer(Maingraph3D);
+    Q3DSurface* Maingraph3D = new Q3DSurface();
+    QWidget* container = QWidget::createWindowContainer(Maingraph3D);
     tab6->setLayout(new QVBoxLayout());
     tab6->layout()->addWidget(container);
 
     // Создание графика
-    QSurfaceDataProxy *MaindataProxy = new QSurfaceDataProxy();
-    QSurface3DSeries *Mainseries = new QSurface3DSeries(MaindataProxy);
-    
+    QSurfaceDataProxy* MaindataProxy = new QSurfaceDataProxy();
+    QSurface3DSeries* Mainseries = new QSurface3DSeries(MaindataProxy);
+
     // Создание данных для графика
-    QSurfaceDataArray *MaindataArray = new QSurfaceDataArray();
-    QSurfaceDataRow *MaindataRow = new QSurfaceDataRow();
+    QSurfaceDataArray* MaindataArray = new QSurfaceDataArray();
+    QSurfaceDataRow* MaindataRow = new QSurfaceDataRow();
     *MaindataRow << QVector3D(0, 0, 1) << QVector3D(1, 0, 2) << QVector3D(2, 0, 3);
     MaindataArray->append(MaindataRow);
     MaindataProxy->resetArray(MaindataArray);

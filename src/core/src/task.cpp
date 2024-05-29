@@ -28,7 +28,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[0] = invsqK;
                     } else if (net.nodes[i][j - 1] == NodeType::BOUND) {
                         row[0] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j - 1)) * invsqK;
+                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j - 1),cfg) * invsqK;
                     }
                 } else {
                     row[0] = 0;
@@ -39,7 +39,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[1] = invsqH;
                     } else if (net.nodes[i - 1][j] == NodeType::BOUND) {
                         row[1] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * (i - 1), net.y_start + net.step_y * j) * invsqH;
+                        rhs += -fBoundary(net.x_start + net.step_x * (i - 1), net.y_start + net.step_y * j,cfg) * invsqH;
                     }
                 } else {
                     row[1] = 0;
@@ -50,7 +50,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[3] = invsqH;
                     } else if (net.nodes[i + 1][j] == NodeType::BOUND) {
                         row[3] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * (i + 1), net.y_start + net.step_y * j) * invsqH;
+                        rhs += -fBoundary(net.x_start + net.step_x * (i + 1), net.y_start + net.step_y * j,cfg) * invsqH;
                     }
                 } else {
                     row[3] = 0;
@@ -61,7 +61,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[4] = invsqK;
                     } else if (net.nodes[i][j + 1] == NodeType::BOUND) {
                         row[4] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j + 1)) * invsqK;
+                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j + 1),cfg) * invsqK;
                     }
                 } else {
                     row[4] = 0;

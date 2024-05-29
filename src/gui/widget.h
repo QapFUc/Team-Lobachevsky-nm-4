@@ -1,26 +1,30 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
+#include <QBoxLayout>
 #include <QGuiApplication>
 #include <QLabel>
 #include <QLayout>
+#include <QLineEdit>
 #include <QMenuBar>
 #include <QScreen>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QWidget>
-#include <QLineEdit>
-#include <QBoxLayout>
 #include <Qt>
+#include <QtCharts>
+#include <QtDataVisualization>
+#include <QtWidgets>
 
+#include "core/netProcess.hpp"
+#include "core/task.hpp"
+#include "dataTypes/common.hpp"
+#include "dataTypes/config.hpp"
+#include <math.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
 #include <signal.h>
-#include "dataTypes/config.hpp"
-#include "core/netProcess.hpp"
-#include "dataTypes/common.hpp"
-#include "core/netProcess.hpp"
-#include "core/task.hpp"
+#include <iostream>
 
 class Widget : public QWidget {
     Q_OBJECT
@@ -29,16 +33,20 @@ public:
     Widget(QWidget* parent = nullptr);
     ~Widget();
     void InitTabTask();
-    void CreateTableTest(int x, int y);
-    void CreateTableMain(int x, int y);
+    void InitTableTest();
+    void UpdateTableTest();
+    void InitTableMain();
+    void UpdateTableMain();
     void CreateInfoTest();
     void CreateInfoMain();
     void CreateGraphsTest();
-    void CreateGraphsMain();
+    void InitGraphsMain();
+    void UpdateGraphsMain();
     void CreateTable2();
     void CreateGraphs();
     void StartSimplexIter();
     void StartCGM();
+    void StartSOR();
     void InitDirTask();
     void UpdateDirTask();
 private slots:
@@ -49,15 +57,13 @@ private:
     NetPattern* Networkpattern;
     Net* Network;
     DirichletTask* DirTask;
-    QTabWidget* tabWidget;
+    Config config;
 
+    QTabWidget* tabWidget;
+    // TaskTab
     QWidget* tabTask;
 
     QVBoxLayout* MainHLayout;
-    QVBoxLayout* TestTableLayout;
-    QVBoxLayout* MainTableLayout;
-    QVBoxLayout *TestInfoLayout;
-    QVBoxLayout *MainInfoLayout;
 
     QLineEdit* InputN;
     QLineEdit* InputM;
@@ -68,18 +74,42 @@ private:
     QLineEdit* InputEndXArea;
     QLineEdit* InputStartYArea;
     QLineEdit* InputEndYArea;
+
     QComboBox* InputTask;
     QComboBox* InputStartx;
+
     QPushButton* SendDatabtn;
+    //TabTableTest
+    QWidget* tabTableTest;
 
-    Config config;
+    QVBoxLayout* TestInfoLayout;
+    QVBoxLayout* MainInfoLayout;
+
+    QTableWidget* TableTest_1;  // real solve
+    QTableWidget* TableTest_2;  // iter solve
+    QTableWidget* TableTest_3;  // real-iter solve
+    // Table Main
+    QWidget* tabTableMain;
+
+    QVBoxLayout* MainTableLayout;
+
+    QTableWidget* TableMain_1; // real solve
+    QTableWidget* TableMain_2;
+    QTableWidget* TableMain_3; 
 
 
-    QWidget* tab2;
     QWidget* tab3;
     QWidget* tab4;
-    QWidget* tab5;
+
+    //MainGraphs
     QWidget* tab6;
+
+    Q3DSurface* Maingraph3D;
+    QSurfaceDataProxy* MaindataProxy;
+    QSurface3DSeries* Mainseries;
+
+
+
     QWidget* tab7;
 };
 #endif  // WIDGET_H

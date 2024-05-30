@@ -9,5 +9,8 @@ std::vector<double> MethodInterface::InitialX() const {
     case nm::StartApr::Zeros: {
         return initx;
     }
+    default: {
+        return initx;
+    }
     }
 }

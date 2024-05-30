@@ -128,7 +128,9 @@ void Widget::InitTabTask() {
     InputEndYArea->setMaximumWidth(200);
     InputTask = new QComboBox();
     InputTask->addItem("Выбрать задачу");
-    InputTask->addItem("Тестовая");
+    InputTask->addItem("Тестовая Колганов");
+    InputTask->addItem("Тестовая Усов");
+    InputTask->addItem("Тестовая Сучков/Руяткин");
     InputTask->addItem("Первая ступень Колганов");
     InputTask->addItem("Вторая ступень Усов");
     InputTask->addItem("Вторая ступень Сучков");
@@ -209,6 +211,7 @@ void Widget::InitDirTask() {
         if (x == config.StartXArea || x == config.EndXArea || y == config.StartYArea || y == config.EndYArea) {
             return fTrueSol_test(x, y);
         }
+        return 1;
     };
 
     fRHS_test = [](const double& x, const double& y) -> double {
@@ -233,14 +236,13 @@ void Widget::UpdateDirTask() {
 
     DirTask->SetConfig(config);
     DirTask->SetNet(*Network);
-    DirTask->GenerateLinearSystem();
 }
 
 void Widget::StartSimplexIter() {
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
     DirTask->SetMethod(nm::Method::SimpleIter);
-    UpdateDirTask();
+    DirTask->GenerateLinearSystem();
     DirTask->eval();
 }
 
@@ -248,7 +250,7 @@ void Widget::StartCGM() {
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
     DirTask->SetMethod(nm::Method::CGM);
-    UpdateDirTask();
+    DirTask->GenerateLinearSystem();
     DirTask->eval();
 }
 
@@ -256,7 +258,7 @@ void Widget::StartSOR() {
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
     DirTask->SetMethod(nm::Method::SOR);
-    UpdateDirTask();
+    DirTask->GenerateLinearSystem();
     DirTask->eval();
 }
 
@@ -264,7 +266,7 @@ void Widget::StartTestCGM() {
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
     DirTask->SetMethod(nm::Method::CGM);
-    UpdateDirTask();
+    DirTask->GenerateLinearSystem();
     DirTask->eval();
 }
 
@@ -272,7 +274,7 @@ void Widget::StartTestSOR() {
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
     DirTask->SetMethod(nm::Method::SOR);
-    UpdateDirTask();
+    DirTask->GenerateLinearSystem();
     DirTask->eval();
 }
 
@@ -280,7 +282,7 @@ void Widget::StartTestSimpleIter() {
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
     DirTask->SetMethod(nm::Method::SimpleIter);
-    UpdateDirTask();
+    DirTask->GenerateLinearSystem();
     DirTask->eval();
 }
 
@@ -301,31 +303,41 @@ void Widget::SendDatabtnClick() {
         return;
     }
 
+    UpdateDirTask();
     switch (InputTask->currentIndex()) {
     case 0:
-        StartTestCGM();
-        UpdateTableTest();
-        UpdateGraphsMain();
         break;
     case 1:
-        //StartMain(config);
+        StartTestSOR();
+        UpdateTableTest();
+        UpdateGraphsTest();
         break;
     case 2:
+        StartTestSimpleIter();
+        UpdateTableTest();
+        UpdateGraphsTest();
+        break;
+    case 3:
+        StartTestCGM();
+        UpdateTableTest();
+        UpdateGraphsTest();
+        break;
+    case 4:
         StartSOR();
         UpdateTableMain();
         UpdateGraphsMain();
         break;
-    case 3:
+    case 5:
         StartSimplexIter();
         UpdateTableMain();
         UpdateGraphsMain();
         break;
-    case 4:
+    case 6:
         StartCGM();
         UpdateTableMain();
         UpdateGraphsMain();
         break;
-    case 5:
+    case 7:
         //StartOscil(config);
         break;
     default:
@@ -345,11 +357,7 @@ void Widget::InitTableTest() {
 
     TestLayout_1->addWidget(TestLabel_1);
 
-    TableTest_1 = new QTableWidget(0, 0);
-
-    TableTest_1->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-    TableTest_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    TableTest_1 = new QTableWidget();
 
     TestLayout_1->addWidget(TableTest_1);
 
@@ -363,11 +371,7 @@ void Widget::InitTableTest() {
 
     TestLayout_2->addWidget(TestLabel_2);
 
-    TableTest_2 = new QTableWidget(0, 0);
-
-    TableTest_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-    TableTest_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    TableTest_2 = new QTableWidget();
 
     TestLayout_2->addWidget(TableTest_2);
 
@@ -383,16 +387,13 @@ void Widget::InitTableTest() {
 
     TableTest_3 = new QTableWidget();
 
-    TableTest_3->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-    TableTest_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
     TestLayout_3->addWidget(TableTest_3);
 
     TestTableLayout->addLayout(TestLayout_3);
 }
 
 void Widget::UpdateTableTest() {
+    std::cout<<"update test table"<<std::endl;
     // Real solve
     TableTest_1->setColumnCount(config.CountCutX);
     TableTest_1->setRowCount(config.CountCutY);

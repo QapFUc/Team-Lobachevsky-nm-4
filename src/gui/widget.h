@@ -40,6 +40,7 @@ public:
     void CreateInfoTest();
     void CreateInfoMain();
     void CreateGraphsTest();
+    void UpdateGraphsTest() {};
     void InitGraphsMain();
     void UpdateGraphsMain();
     void CreateTable2();

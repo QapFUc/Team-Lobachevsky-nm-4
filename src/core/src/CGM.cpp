@@ -25,7 +25,7 @@ std::vector<double> ConjGradMethod::eval() {
     result = InitialX();
 
     LOG_INFO_CLI("Evaluating start residual");
-    MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+    MatrixOperate(*matrix, result, residual, cfg.net_widthes);
     VectorSub(*rhs, residual, residual);
 
     // start direction
@@ -39,7 +39,7 @@ std::vector<double> ConjGradMethod::eval() {
     LOG_INFO_CLI("Iterating CGM...");
     start = std::clock();
     while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
-        MatrixOperate(*matrix, direction, tmp, cfg.matrix_width);
+        MatrixOperate(*matrix, direction, tmp, cfg.net_widthes);
         prod = InnerProd(residual, residual);
         alpha = prod / InnerProd(direction, tmp);
         VectorSum(result, direction, result, 1.l, alpha);

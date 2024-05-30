@@ -19,7 +19,7 @@ std::vector<double> SimpleIter::eval() {
     result = InitialX();
 
     LOG_INFO_CLI("Evaluating start residual");
-    MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+    MatrixOperate(*matrix, result, residual, cfg.net_widthes);
     VectorSub(*rhs, residual, residual);
 
     // start direction
@@ -34,7 +34,7 @@ std::vector<double> SimpleIter::eval() {
     while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
         VectorSum(result, residual, result, 1.l, parametr);
 
-        MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+        MatrixOperate(*matrix, result, residual, cfg.net_widthes);
         VectorSub(*rhs, residual, residual);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         k++;

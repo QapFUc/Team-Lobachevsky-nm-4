@@ -216,9 +216,7 @@ void Widget::InitDirTask() {
 
     fRHS_test = [](const double& x, const double& y) -> double {
         double arg = M_PI * x * y;
-        double sin = std::pow(std::sin(arg), 2);
-        double cos = std::pow(std::cos(arg), 4);
-        return 4 * M_PI * M_PI * std::exp(sin) * cos * (x * x + y * y);
+        return 0.5 * M_PI * M_PI * std::exp(std::pow(std::sin(arg), 2)) * (x * x + y * y) * (-1 - 4 * std::cos(2 * arg) + std::cos(4 * arg));
     };
 
     DirTask = new DirichletTask(fBound_main, fRHS_main, *Network, config);
@@ -241,48 +239,52 @@ void Widget::UpdateDirTask() {
 void Widget::StartSimplexIter() {
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
-    DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->eval();
 }
 
 void Widget::StartCGM() {
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
-    DirTask->SetMethod(nm::Method::CGM);
     DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
 }
 
 void Widget::StartSOR() {
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
-    DirTask->SetMethod(nm::Method::SOR);
     DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::SOR);
+
     DirTask->eval();
 }
 
 void Widget::StartTestCGM() {
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
-    DirTask->SetMethod(nm::Method::CGM);
     DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::CGM);
+
     DirTask->eval();
 }
 
 void Widget::StartTestSOR() {
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
-    DirTask->SetMethod(nm::Method::SOR);
     DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::SOR);
+
     DirTask->eval();
 }
 
 void Widget::StartTestSimpleIter() {
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
-    DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::SimpleIter);
+
     DirTask->eval();
 }
 
@@ -393,7 +395,7 @@ void Widget::InitTableTest() {
 }
 
 void Widget::UpdateTableTest() {
-    std::cout<<"update test table"<<std::endl;
+    std::cout << "update test table" << std::endl;
     // Real solve
     TableTest_1->setColumnCount(config.CountCutX);
     TableTest_1->setRowCount(config.CountCutY);

@@ -1,10 +1,18 @@
 #include "core/vector.hpp"
+#include <cstddef>
 
-void MatrixOperate(const std::vector<double>& A, const std::vector<double>& x, std::vector<double>& res, const size_t& width) {
+void MatrixOperate(const std::vector<double>& A, const std::vector<double>& x, std::vector<double>& res, const std::vector<size_t>& widthes) {
     size_t i = 0, j = 0;
-    size_t k = 0;
+    size_t k = 0, L = 0;
     double cX[5];
+    int64_t s = widthes[L];
     for (size_t m = 0; m < x.size(); ++m) {
+        if (m > s) {
+            L++;
+            s += widthes[L];
+        }
+
+        size_t width = widthes[L];
         i = m % width;
         j = m / width;
         k = 5 * m;

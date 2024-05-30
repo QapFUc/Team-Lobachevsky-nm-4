@@ -3,6 +3,7 @@
 #include "nm/utils/logger.hpp"
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <ctime>
 #include <numeric>
 #include <ostream>
@@ -10,10 +11,19 @@
 
 #define PI 3.14159265358979
 
-static double GetOutDiagSumm(const size_t& m, const size_t& width, const std::vector<double>& x, const std::vector<double>& A) {
+static double GetOutDiagSumm(const size_t& m, const std::vector<size_t>& widthes, const std::vector<double>& x, const std::vector<double>& A) {
     size_t i = 0, j = 0;
-    size_t k = 0;
+    size_t k = 0, L = 0;
     double cX[4];
+
+    size_t s = widthes[L];
+    while (m > s) {
+        L++;
+        s += widthes[L];
+    }
+
+    
+    size_t width = widthes[L];
     i = m % width;
     j = m / width;
     k = 5 * m;
@@ -67,7 +77,7 @@ std::vector<double> SuccessiveOverRelax::eval() {
     result = InitialX();
 
     LOG_INFO_CLI("Evaluating start residual");
-    MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+    MatrixOperate(*matrix, result, residual, cfg.net_widthes);
     VectorSub(*rhs, residual, residual);
 
     double curr_tol = std::sqrt(EuclidianNormSq(residual));
@@ -80,10 +90,10 @@ std::vector<double> SuccessiveOverRelax::eval() {
     start = std::clock();
     while (curr_tol >= cfg.tolerance && l < cfg.Max_N) {
         for (size_t m = 0; m < result.size(); ++m) {
-            result[m] = (omega / (*matrix)[2]) * (omegaInv * (*matrix)[2] * result[m] - GetOutDiagSumm(m, cfg.matrix_width, result, *matrix) + (*rhs)[m]);
+            result[m] = (omega / (*matrix)[2]) * (omegaInv * (*matrix)[2] * result[m] - GetOutDiagSumm(m, cfg.net_widthes, result, *matrix) + (*rhs)[m]);
         }
 
-        MatrixOperate(*matrix, result, residual, cfg.matrix_width);
+        MatrixOperate(*matrix, result, residual, cfg.net_widthes);
         VectorSub(*rhs, residual, residual);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         l++;

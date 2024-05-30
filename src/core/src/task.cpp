@@ -30,7 +30,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[0] = invsqK;
                     } else if (net.nodes[i][j - 1] == NodeType::BOUND) {
                         row[0] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j - 1),cfg) * invsqK;
+                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j - 1), cfg) * invsqK;
                     }
                 } else {
                     row[0] = 0;
@@ -41,7 +41,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[1] = invsqH;
                     } else if (net.nodes[i - 1][j] == NodeType::BOUND) {
                         row[1] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * (i - 1), net.y_start + net.step_y * j,cfg) * invsqH;
+                        rhs += -fBoundary(net.x_start + net.step_x * (i - 1), net.y_start + net.step_y * j, cfg) * invsqH;
                     }
                 } else {
                     row[1] = 0;
@@ -52,7 +52,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[3] = invsqH;
                     } else if (net.nodes[i + 1][j] == NodeType::BOUND) {
                         row[3] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * (i + 1), net.y_start + net.step_y * j,cfg) * invsqH;
+                        rhs += -fBoundary(net.x_start + net.step_x * (i + 1), net.y_start + net.step_y * j, cfg) * invsqH;
                     }
                 } else {
                     row[3] = 0;
@@ -63,7 +63,7 @@ void DirichletTask::GenerateLinearSystem() {
                         row[4] = invsqK;
                     } else if (net.nodes[i][j + 1] == NodeType::BOUND) {
                         row[4] = 0;
-                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j + 1),cfg) * invsqK;
+                        rhs += -fBoundary(net.x_start + net.step_x * i, net.y_start + net.step_y * (j + 1), cfg) * invsqK;
                     }
                 } else {
                     row[4] = 0;
@@ -74,11 +74,10 @@ void DirichletTask::GenerateLinearSystem() {
                 rhsv.push_back(rhs);
             }
         }
-
     }
 
-        lsmatrix = matrix;
-        lsrhs = rhsv;
+    lsmatrix = matrix;
+    lsrhs = rhsv;
 }
 
 void DirichletTask::SetMethod(const nm::Method& m) {
@@ -86,24 +85,39 @@ void DirichletTask::SetMethod(const nm::Method& m) {
         delete this->method;
     }
 
+    std::vector<size_t> ws(net.nodes[0].size() - 2);
+    size_t h = 0;
+    for (size_t j = 0; j < net.nodes[0].size(); ++j) {
+        size_t k = 0;
+        for (size_t i = 0; i < net.nodes.size(); ++i) {
+            if (net.nodes[i][j] == NodeType::INNER)
+                k++;
+        }
+
+        if (k > 0) {
+            ws[h] = k;
+            h++;
+        }
+    }
+
     if (m == nm::Method::CGM) {
         MethodConfig mcfg;
         mcfg.startX = cfg.startX;
-        mcfg.matrix_width = net.nodes.size() - 2;
+        mcfg.net_widthes = ws;
         mcfg.tolerance = cfg.tolerance;
         mcfg.Max_N = cfg.Max_N;
         this->method = new ConjGradMethod(&lsmatrix, &lsrhs, mcfg);
     } else if (m == nm::Method::SimpleIter) {
         SimpleIterMethodConfig scfg;
         scfg.startX = cfg.startX;
-        scfg.matrix_width = net.nodes.size() - 2;
+        scfg.net_widthes = ws;
         scfg.tolerance = cfg.tolerance;
         scfg.Max_N = cfg.Max_N;
         this->method = new SimpleIter(&lsmatrix, &lsrhs, scfg);
     } else if (m == nm::Method::SOR) {
         MethodConfig mcfg;
         mcfg.startX = cfg.startX;
-        mcfg.matrix_width = net.nodes.size() - 2;
+        mcfg.net_widthes = ws;
         mcfg.tolerance = cfg.tolerance;
         mcfg.Max_N = cfg.Max_N;
         mcfg.n = cfg.CountCutX;

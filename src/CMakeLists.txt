@@ -10,4 +10,4 @@ target_link_libraries(test PRIVATE
     dirichlet::core
     nm::dtypes
 )
-target_compile_options(test PUBLIC "-O3;-msse2;-mfpmath=sse;-ftree-vectorizer-verbose=5")
+# target_compile_options(test PUBLIC "-O3;-msse2;-mfpmath=sse;-ftree-vectorizer-verbose=5")

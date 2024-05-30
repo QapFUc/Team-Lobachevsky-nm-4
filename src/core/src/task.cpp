@@ -100,7 +100,7 @@ void DirichletTask::SetMethod(const nm::Method& m) {
         scfg.Max_N = cfg.Max_N;
         this->method = new SimpleIter(&lsmatrix, &lsrhs, scfg);
     } else if (m == nm::Method::SOR) {
-        MethodConfig mcfg;
+        SORconfig mcfg;
         mcfg.startX = cfg.startX;
         mcfg.matrix_width = net.nodes.size();
         mcfg.tolerance = cfg.tolerance;

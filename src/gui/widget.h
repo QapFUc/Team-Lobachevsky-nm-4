@@ -49,6 +49,8 @@ public:
     void StartSOR();
     void InitDirTask();
     void UpdateDirTask();
+    void UpdateInfoTest();
+    void UpdateInfoMain();
 private slots:
 
     void SendDatabtnClick();
@@ -101,6 +103,20 @@ private:
     QWidget* tab3;
     QWidget* tab4;
 
+    QLineEdit* TestLineEditInfo_1;
+    QLineEdit* TestLineEditInfo_2;
+    QLineEdit* TestLineEditInfo_3;
+    QLineEdit* TestLineEditInfo_4;
+    QLineEdit* TestLineEditInfo_5;
+    QLineEdit* TestLineEditInfo_6;
+    QLineEdit* TestLineEditInfo_7;
+    QLineEdit* TestLineEditInfo_8;
+    QLineEdit* TestLineEditInfo_9;
+    QLineEdit* TestLineEditInfo_10;
+    QLineEdit* TestLineEditInfo_11;
+    QLineEdit* TestLineEditInfo_12;
+    QLineEdit* TestLineEditInfo_13;
+
     //MainGraphs
     QWidget* tab6;
 
@@ -111,5 +127,27 @@ private:
 
 
     QWidget* tab7;
+
+    QLineEdit* MainLineEditInfo_1;
+    QLineEdit* MainLineEditInfo_2;
+    QLineEdit* MainLineEditInfo_3;
+    QLineEdit* MainLineEditInfo_4;
+    QLineEdit* MainLineEditInfo_5;
+    QLineEdit* MainLineEditInfo_6;
+    QLineEdit* MainLineEditInfo_7;
+    QLineEdit* MainLineEditInfo_8;
+    QLineEdit* MainLineEditInfo_9;
+    QLineEdit* MainLineEditInfo_11;
+    QLineEdit* MainLineEditInfo_12;
+    QLineEdit* MainLineEditInfo_13;
+    QLineEdit* MainLineEditInfo_14;
+    QLineEdit* MainLineEditInfo_15;
+    QLineEdit* MainLineEditInfo_16;
+    QLineEdit* MainLineEditInfo_17;
+    QLineEdit* MainLineEditInfo_18;
+    QLineEdit* MainLineEditInfo_19;
+    QLineEdit* MainLineEditInfo_20;
+    QLineEdit* MainLineEditInfo_21;
+    QLineEdit* MainLineEditInfo_22;
 };
 #endif  // WIDGET_H

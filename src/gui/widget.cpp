@@ -181,7 +181,7 @@ void Widget::InitTabTask() {
 void Widget::InitDirTask() {
     Networkpattern = (new NetPattern());
     Network = new Net();
-    auto fb = [](const double& x, const double& y, const Config& config) -> double {
+    fBound_main = [](const double& x, const double& y, const Config& config) -> double {
         if (x == config.StartXArea) {
             return (-y * y + y);
         }
@@ -196,11 +196,29 @@ void Widget::InitDirTask() {
         }
         return 1;
     };
-    auto fr = [](const double& x, const double& y) -> double {
+
+    fRHS_main = [](const double& x, const double& y) -> double {
         return abs(x - y);
     };
 
-    DirTask = new DirichletTask(fb, fr, *Network, config);
+    fTrueSol_test = [](const double& x, const double& y) -> double {
+        return std::exp(std::pow(std::sin(M_PI * x * y), 2));
+    };
+
+    fBound_test = [&](const double& x, const double& y, const Config& config) -> double {
+        if (x == config.StartXArea || x == config.EndXArea || y == config.StartYArea || y == config.EndYArea) {
+            return fTrueSol_test(x, y);
+        }
+    };
+
+    fRHS_test = [](const double& x, const double& y) -> double {
+        double arg = M_PI * x * y;
+        double sin = std::pow(std::sin(arg), 2);
+        double cos = std::pow(std::cos(arg), 4);
+        return 4 * M_PI * M_PI * std::exp(sin) * cos * (x * x + y * y);
+    };
+
+    DirTask = new DirichletTask(fBound_main, fRHS_main, *Network, config);
 }
 
 void Widget::UpdateDirTask() {
@@ -219,17 +237,50 @@ void Widget::UpdateDirTask() {
 }
 
 void Widget::StartSimplexIter() {
+    DirTask->SetBoundary(fBound_main);
+    DirTask->SetRHS(fRHS_main);
     DirTask->SetMethod(nm::Method::SimpleIter);
+    UpdateDirTask();
     DirTask->eval();
 }
 
 void Widget::StartCGM() {
+    DirTask->SetBoundary(fBound_main);
+    DirTask->SetRHS(fRHS_main);
     DirTask->SetMethod(nm::Method::CGM);
+    UpdateDirTask();
     DirTask->eval();
 }
 
 void Widget::StartSOR() {
+    DirTask->SetBoundary(fBound_main);
+    DirTask->SetRHS(fRHS_main);
     DirTask->SetMethod(nm::Method::SOR);
+    UpdateDirTask();
+    DirTask->eval();
+}
+
+void Widget::StartTestCGM() {
+    DirTask->SetBoundary(fBound_test);
+    DirTask->SetRHS(fRHS_test);
+    DirTask->SetMethod(nm::Method::CGM);
+    UpdateDirTask();
+    DirTask->eval();
+}
+
+void Widget::StartTestSOR() {
+    DirTask->SetBoundary(fBound_test);
+    DirTask->SetRHS(fRHS_test);
+    DirTask->SetMethod(nm::Method::SOR);
+    UpdateDirTask();
+    DirTask->eval();
+}
+
+void Widget::StartTestSimpleIter() {
+    DirTask->SetBoundary(fBound_test);
+    DirTask->SetRHS(fRHS_test);
+    DirTask->SetMethod(nm::Method::SimpleIter);
+    UpdateDirTask();
     DirTask->eval();
 }
 
@@ -249,10 +300,12 @@ void Widget::SendDatabtnClick() {
         QMessageBox::critical(this, "Critical Error", "Start point must be > 0");
         return;
     }
-    UpdateDirTask();
+
     switch (InputTask->currentIndex()) {
     case 0:
-        //StartTest(config);
+        StartTestCGM();
+        UpdateTableTest();
+        UpdateGraphsMain();
         break;
     case 1:
         //StartMain(config);
@@ -339,7 +392,125 @@ void Widget::InitTableTest() {
     TestTableLayout->addLayout(TestLayout_3);
 }
 
-void Widget::UpdateTableTest() {}
+void Widget::UpdateTableTest() {
+    // Real solve
+    TableTest_1->setColumnCount(config.CountCutX);
+    TableTest_1->setRowCount(config.CountCutY);
+    double stepx = Network->step_x;
+    double stepy = Network->step_y;
+    for (int row = 0; row < config.CountCutY; ++row) {
+        for (int col = 0; col < config.CountCutX; ++col) {
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx;
+                double y = row * stepy;
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::exp(std::pow(std::sin(M_PI * x * y), 2))));
+                TableTest_1->setItem(row, col, item);
+            }
+        }
+    }
+
+    for (int col = 0; col < config.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(col * stepx));
+        TableTest_1->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableTest_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(row * stepy));
+        TableTest_1->setVerticalHeaderItem(row, headerItem);
+    }
+
+    // Numeric solve
+    TableTest_2->setColumnCount(config.CountCutX);
+    TableTest_2->setRowCount(config.CountCutY);
+    size_t biasY = 0;
+    for (size_t row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < config.CountCutX; ++col) {
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx;
+                double y = row * stepy;
+                double val = 0.l;
+
+                if (Network->nodes[col][row] == NodeType::BOUND) {
+                    val = DirTask->Boundary(x, y);
+                    biasX += 1;
+                } else if (Network->nodes[col][row] == NodeType::INNER) {
+                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                }
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
+                TableTest_2->setItem(row, col, item);
+            }
+        }
+    }
+    for (int col = 0; col < config.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + col * stepx));
+        TableTest_2->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableTest_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + row * stepy));
+        TableTest_2->setVerticalHeaderItem(row, headerItem);
+    }
+
+    // Numeric - Real solve
+    TableTest_3->setColumnCount(config.CountCutX);
+    TableTest_3->setRowCount(config.CountCutY);
+    biasY = 0;
+    for (size_t row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < config.CountCutX; ++col) {
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx;
+                double y = row * stepy;
+                double val = 0.l;
+
+                if (Network->nodes[col][row] == NodeType::BOUND) {
+                    val = DirTask->Boundary(x, y);
+                    biasX += 1;
+                } else if (Network->nodes[col][row] == NodeType::INNER) {
+                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                }
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::abs(val - fTrueSol_test(x, y))));
+                TableTest_3->setItem(row, col, item);
+            }
+        }
+    }
+    for (int col = 0; col < config.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(col * stepx));
+        TableTest_3->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableTest_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(row * stepy));
+        TableTest_3->setVerticalHeaderItem(row, headerItem);
+    }
+
+    // TableTest_1->resizeColumnsToContents();
+    // TableTest_1->resizeRowsToContents();
+    TableTest_2->resizeColumnsToContents();
+    TableTest_2->resizeRowsToContents();
+    TableTest_3->resizeColumnsToContents();
+    TableTest_3->resizeRowsToContents();
+}
 
 void Widget::InitTableMain() {
     MainTableLayout = new QVBoxLayout();
@@ -382,54 +553,35 @@ void Widget::InitTableMain() {
 
 void Widget::UpdateTableMain() {
     std::cout << "start upd" << std::endl;
-
-    // Real solve
-    TableMain_1->setColumnCount(config.CountCutX);
-    TableMain_1->setRowCount(config.CountCutY);
     double stepx = Network->step_x;
     double stepy = Network->step_y;
-    for (int row = 0; row < config.CountCutY; ++row) {
-        for (int col = 0; col < config.CountCutX; ++col) {
-            double x = col * stepx;
-            double y = row * stepy;
-            QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::exp(std::pow(std::sin(M_PI * x * y), 2))));
-            TableMain_1->setItem(row, col, item);
-        }
-    }
-    for (int col = 0; col < config.CountCutX; ++col) {
-        QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(col * stepx));
-        TableMain_1->setHorizontalHeaderItem(col, headerItem);
-    }
-    TableMain_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    for (int row = 0; row < config.CountCutY; ++row) {
-        QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(row * stepy));
-        TableMain_1->setVerticalHeaderItem(row, headerItem);
-    }
 
     // Numeric solve
     TableMain_2->setColumnCount(config.CountCutX);
     TableMain_2->setRowCount(config.CountCutY);
     for (size_t row = 0; row < config.CountCutY; ++row) {
         size_t BordersInRow = 0;
+        size_t biasX = 0;
         for (size_t l = 0; l < config.CountCutX; ++l) {
             if (Network->nodes[l][row] == NodeType::BOUND)
                 BordersInRow += 1;
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
-            double x = col * stepx;
-            double y = row * stepy;
-            double val = 0.l;
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx;
+                double y = row * stepy;
+                double val = 0.l;
 
-            if (Network->nodes[col][row] == NodeType::BOUND) {
-                val = DirTask->Boundary(x, y);
-            } else if (Network->nodes[col][row] == NodeType::INNER) {
-                val = DirTask->Solution()[(col - 1) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                if (Network->nodes[col][row] == NodeType::BOUND) {
+                    val = DirTask->Boundary(x, y);
+                    biasX += 1;
+                } else if (Network->nodes[col][row] == NodeType::INNER) {
+                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                }
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
+                TableMain_2->setItem(row, col, item);
             }
-
-            QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
-            TableMain_2->setItem(row, col, item);
         }
     }
     for (int col = 0; col < config.CountCutX; ++col) {
@@ -466,8 +618,8 @@ void Widget::UpdateTableMain() {
         TableMain_3->setVerticalHeaderItem(row, headerItem);
     }
 
-    TableMain_1->resizeColumnsToContents();
-    TableMain_1->resizeRowsToContents();
+    // TableMain_1->resizeColumnsToContents();
+    // TableMain_1->resizeRowsToContents();
     TableMain_2->resizeColumnsToContents();
     TableMain_2->resizeRowsToContents();
     TableMain_3->resizeColumnsToContents();
@@ -802,6 +954,7 @@ void Widget::UpdateGraphsMain() {
 
     for (int row = 0; row < config.CountCutY; ++row) {
         size_t BordersInRow = 0;
+        size_t biasX = 0;
         for (size_t l = 0; l < config.CountCutX; ++l) {
             if (Network->nodes[l][row] == NodeType::BOUND)
                 BordersInRow += 1;
@@ -815,11 +968,11 @@ void Widget::UpdateGraphsMain() {
 
             if (Network->nodes[col][row] == NodeType::BOUND) {
                 val = DirTask->Boundary(x, y);
+                biasX += 1;
             } else if (Network->nodes[col][row] == NodeType::INNER) {
-                val = DirTask->Solution()[(col - 1) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
             }
-            (*MaindataRow)[col] =
-                QVector3D( x, val, y);
+            (*MaindataRow)[col] = QVector3D(x, val, y);
         }
         MaindataArray->append(MaindataRow);
     }

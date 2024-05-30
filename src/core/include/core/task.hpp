@@ -49,4 +49,11 @@ public:
     double Boundary(const double& x, const double& y) {
         return fBoundary(x, y, cfg);
     }
+
+    void SetBoundary(std::function<double(double, double, Config)>& f) {
+        fBoundary = f;
+    }
+    void SetRHS(std::function<double(double, double)>& f) {
+        fRhs = f;
+    }
 };

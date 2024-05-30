@@ -47,6 +47,9 @@ public:
     void StartSimplexIter();
     void StartCGM();
     void StartSOR();
+    void StartTestCGM();
+    void StartTestSOR();
+    void StartTestSimpleIter();
     void InitDirTask();
     void UpdateDirTask();
 private slots:
@@ -111,5 +114,12 @@ private:
 
 
     QWidget* tab7;
+
+    std::function<double(double, double)> fRHS_test;
+    std::function<double(double, double, Config)> fBound_test;
+    std::function<double(double, double)> fRHS_main;
+    std::function<double(double, double, Config)> fBound_main;
+    std::function<double(double, double)> fTrueSol_test;
+
 };
 #endif  // WIDGET_H

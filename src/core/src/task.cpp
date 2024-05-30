@@ -75,9 +75,10 @@ void DirichletTask::GenerateLinearSystem() {
             }
         }
 
+    }
+
         lsmatrix = matrix;
         lsrhs = rhsv;
-    }
 }
 
 void DirichletTask::SetMethod(const nm::Method& m) {
@@ -88,21 +89,21 @@ void DirichletTask::SetMethod(const nm::Method& m) {
     if (m == nm::Method::CGM) {
         MethodConfig mcfg;
         mcfg.startX = cfg.startX;
-        mcfg.matrix_width = net.nodes.size();
+        mcfg.matrix_width = net.nodes.size() - 2;
         mcfg.tolerance = cfg.tolerance;
         mcfg.Max_N = cfg.Max_N;
         this->method = new ConjGradMethod(&lsmatrix, &lsrhs, mcfg);
     } else if (m == nm::Method::SimpleIter) {
         SimpleIterMethodConfig scfg;
         scfg.startX = cfg.startX;
-        scfg.matrix_width = net.nodes.size();
+        scfg.matrix_width = net.nodes.size() - 2;
         scfg.tolerance = cfg.tolerance;
         scfg.Max_N = cfg.Max_N;
         this->method = new SimpleIter(&lsmatrix, &lsrhs, scfg);
     } else if (m == nm::Method::SOR) {
         MethodConfig mcfg;
         mcfg.startX = cfg.startX;
-        mcfg.matrix_width = net.nodes.size();
+        mcfg.matrix_width = net.nodes.size() - 2;
         mcfg.tolerance = cfg.tolerance;
         mcfg.Max_N = cfg.Max_N;
         mcfg.n = cfg.CountCutX;

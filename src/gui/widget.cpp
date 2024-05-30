@@ -405,7 +405,7 @@ void Widget::UpdateTableTest() {
                 double x = col * stepx;
                 double y = row * stepy;
 
-                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::exp(std::pow(std::sin(M_PI * x * y), 2))));
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(fTrueSol_test(config.StartXArea + x, config.StartYArea + y)));
                 TableTest_1->setItem(row, col, item);
             }
         }
@@ -444,7 +444,7 @@ void Widget::UpdateTableTest() {
                     val = DirTask->Boundary(x, y);
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
-                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
                 }
 
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
@@ -485,7 +485,7 @@ void Widget::UpdateTableTest() {
                     val = DirTask->Boundary(x, y);
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
-                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
                 }
 
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::abs(val - fTrueSol_test(x, y))));
@@ -505,8 +505,8 @@ void Widget::UpdateTableTest() {
         TableTest_3->setVerticalHeaderItem(row, headerItem);
     }
 
-    // TableTest_1->resizeColumnsToContents();
-    // TableTest_1->resizeRowsToContents();
+    TableTest_1->resizeColumnsToContents();
+    TableTest_1->resizeRowsToContents();
     TableTest_2->resizeColumnsToContents();
     TableTest_2->resizeRowsToContents();
     TableTest_3->resizeColumnsToContents();
@@ -577,7 +577,7 @@ void Widget::UpdateTableMain() {
                     val = DirTask->Boundary(x, y);
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
-                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
                 }
 
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
@@ -971,7 +971,7 @@ void Widget::UpdateGraphsMain() {
                 val = DirTask->Boundary(x, y);
                 biasX += 1;
             } else if (Network->nodes[col][row] == NodeType::INNER) {
-                val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes[0].size() - BordersInRow)];
+                val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
             }
             (*MaindataRow)[col] = QVector3D(x, val, y);
         }

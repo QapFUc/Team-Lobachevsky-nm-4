@@ -9,18 +9,18 @@
 #include <vector>
 
 class DirichletTask {
-    std::function<double(double, double)> fBoundary;  // Граничные условия все
-    std::function<double(double, double)> fRhs;       // Неоднородность
-    std::vector<double> lsmatrix;                     // матрица (то что осталось)
-    std::vector<double> lsrhs;                        // значение функции
-    std::vector<double> solution;                     // само решение готовое
-    Net net;                                          // сетка
+    std::function<double(double, double, Config)> fBoundary;  // Граничные условия все
+    std::function<double(double, double)> fRhs;               // Неоднородность
+    std::vector<double> lsmatrix;                             // матрица (то что осталось)
+    std::vector<double> lsrhs;                                // значение функции
+    std::vector<double> solution;                             // само решение готовое
+    Net net;                                                  // сетка
     Config cfg;
     MethodInterface* method = nullptr;
 
 public:
     DirichletTask() = default;
-    DirichletTask(std::function<double(double, double)> fBoundary, std::function<double(double, double)> fRhs, const Net& net, const Config& cfg)
+    DirichletTask(std::function<double(double, double, Config)> fBoundary, std::function<double(double, double)> fRhs, const Net& net, const Config& cfg)
         : fBoundary(fBoundary), fRhs(fRhs), net(net), cfg(cfg) {}
 
     void GenerateLinearSystem();
@@ -44,5 +44,9 @@ public:
     }
     void SetConfig(const Config& config) {
         this->cfg = config;
+    }
+
+    double Boundary(const double& x, const double& y) {
+        return fBoundary(x, y, cfg);
     }
 };

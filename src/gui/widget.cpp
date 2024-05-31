@@ -89,9 +89,9 @@ Widget::Widget(QWidget* parent) : QWidget(parent) {
 
     CreateInfoMain();
 
-    CreateGraphsTest();
-
     InitGraphsMain();
+
+    InitGraphsTest();
 }
 
 Widget::~Widget() {}
@@ -177,7 +177,7 @@ void Widget::InitTabTask() {
     MainHLayout->addLayout(HLayoutInputConnect);
 
     QObject::connect(SendDatabtn, &QPushButton::clicked, this, &Widget::SendDatabtnClick);
-
+    exitconfig = new ExitConfig();
     InitDirTask();
 }
 
@@ -242,31 +242,31 @@ void Widget::UpdateInfoTest() {
     TestLineEditInfo_1->setText(QString::number(config.CountCutX));
     TestLineEditInfo_2->setText(QString::number(config.CountCutY));
 
-    TestLineEditInfo_3->setText(QString::number(1)); // параметр w для МВР
-    TestLineEditInfo_4->setText(QString::number(1)); // погрешность метода 
+    TestLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр w для МВР
+    TestLineEditInfo_4->setText(QString::number(exitconfig->tolerance)); // погрешность метода 
 
     TestLineEditInfo_5->setText(QString::number(config.Max_N));
-    TestLineEditInfo_6->setText(QString::number(1)); // число затрасенных итераций для решения СЛАУ
+    TestLineEditInfo_6->setText(QString::number(exitconfig->N)); // число затрасенных итераций для решения СЛАУ
 
     TestLineEditInfo_7->setText(QString::number(1)); // точность итерационного метода 
-    TestLineEditInfo_8->setText(QString::number(1)); // невязка слау
+    TestLineEditInfo_8->setText(QString::number(exitconfig->tolerance)); // невязка слау
 
     TestLineEditInfo_9->setText(QString("2 норма")); // норма невязки слау
-    TestLineEditInfo_10->setText(QString::number(1)); // макс разность между точным и численным решением
+    TestLineEditInfo_10->setText(QString::number(MaxDistance)); // макс разность между точным и численным решением
 
-    TestLineEditInfo_11->setText(QString::number(1)); // узел в котором макс отклонение - х
-    TestLineEditInfo_12->setText(QString::number(1)); // узел в макс отклонение - у
+    TestLineEditInfo_11->setText(QString::number(xMaxDistance)); // узел в котором макс отклонение - х
+    TestLineEditInfo_12->setText(QString::number(yMaxDistance)); // узел в макс отклонение - у
     TestLineEditInfo_13->setText(QString("нулевое")); // начальное пиближение
 }
 
 void Widget::UpdateInfoMain() {
 
-    MainLineEditInfo_1->setText(QString::number(config.CountCutX));
-    MainLineEditInfo_2->setText(QString::number(config.CountCutY));
-    MainLineEditInfo_3->setText(QString::number(1)); // параметр метода 
-    MainLineEditInfo_4->setText(QString::number(1)); // критерии остановки по точности 
-    MainLineEditInfo_5->setText(QString::number(1)); // критерии остановки по числу итераций
-    MainLineEditInfo_6->setText(QString::number(1)); // затраченное N на решение СЛАУ
+    MainLineEditInfo_1->setText(QString::number(config.CountCutX-1));
+    MainLineEditInfo_2->setText(QString::number(config.CountCutY-1));
+    MainLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр метода 
+    MainLineEditInfo_4->setText(QString::number(config.Accuracy)); // критерии остановки по точности 
+    MainLineEditInfo_5->setText(QString::number(config.Max_N)); // критерии остановки по числу итераций
+    MainLineEditInfo_6->setText(QString::number(exitconfig->N)); // затраченное N на решение СЛАУ
     MainLineEditInfo_7->setText(QString::number(1)); // достигнутая точность итерац метода 
     MainLineEditInfo_8->setText(QString::number(1)); // невязка решения СЛАУ
     MainLineEditInfo_9->setText(QString("2 норма")); // норма для невязки 
@@ -276,7 +276,7 @@ void Widget::UpdateInfoMain() {
     MainLineEditInfo_14->setText(QString::number(1)); // затраченное число итераций для решения СЛАУ на полов шаге
     MainLineEditInfo_15->setText(QString::number(1)); // достигнутая точность на половинном шаге 
     MainLineEditInfo_16->setText(QString::number(1)); // невязка СЛАУ на половинном шаге
-    MainLineEditInfo_17->setText(QString::number(1)); // использованная норма
+    MainLineEditInfo_17->setText("2 норма"); // использованная норма
     MainLineEditInfo_18->setText(QString::number(1)); // точность решения СЛАУ
     MainLineEditInfo_19->setText(QString::number(1)); // макс отклонение в узле - х 
     MainLineEditInfo_20->setText(QString::number(1)); // макс отклонение в узле - у
@@ -291,6 +291,7 @@ void Widget::StartSimplexIter() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartCGM() {
@@ -299,6 +300,7 @@ void Widget::StartCGM() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartSOR() {
@@ -306,8 +308,8 @@ void Widget::StartSOR() {
     DirTask->SetRHS(fRHS_main);
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SOR);
-
     DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartTestCGM() {
@@ -315,8 +317,9 @@ void Widget::StartTestCGM() {
     DirTask->SetRHS(fRHS_test);
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::CGM);
-
     DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    UpdateInfoTest();
 }
 
 void Widget::StartTestSOR() {
@@ -324,8 +327,9 @@ void Widget::StartTestSOR() {
     DirTask->SetRHS(fRHS_test);
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SOR);
-
     DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    UpdateInfoTest();
 }
 
 void Widget::StartTestSimpleIter() {
@@ -333,8 +337,9 @@ void Widget::StartTestSimpleIter() {
     DirTask->SetRHS(fRHS_test);
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SimpleIter);
-
     DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    UpdateInfoTest();
 }
 
 void Widget::SendDatabtnClick() {
@@ -537,8 +542,12 @@ void Widget::UpdateTableTest() {
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
                     val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
+                    if (val<MaxDistance ) {
+                    MaxDistance = val;
+                    xMaxDistance = x;
+                    yMaxDistance = y;
+                    }
                 }
-
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::abs(val - fTrueSol_test(x, y))));
                 TableTest_3->setItem(row, col, item);
             }
@@ -1037,30 +1046,30 @@ void Widget::CreateInfoMain() {
 }
 
 
-void Widget::CreateGraphsTest() {
-    Q3DSurface* Testgraph3D = new Q3DSurface();
+void Widget::InitGraphsTest() {
+    Testgraph3D = new Q3DSurface();
     QWidget* container = QWidget::createWindowContainer(Testgraph3D);
     tab3->setLayout(new QVBoxLayout());
     tab3->layout()->addWidget(container);
 
     // Создание графика
-    QSurfaceDataProxy* TestdataProxy = new QSurfaceDataProxy();
-    QSurface3DSeries* Testseries = new QSurface3DSeries(TestdataProxy);
-
-    // Создание данных для графика
-    QSurfaceDataArray* TestdataArray = new QSurfaceDataArray();
-    QSurfaceDataRow* TestdataRow = new QSurfaceDataRow();
-    *TestdataRow << QVector3D(0, 0, 1) << QVector3D(1, 0, 2) << QVector3D(2, 0, 3);
-    TestdataArray->append(TestdataRow);
-    TestdataProxy->resetArray(TestdataArray);
-
-    // Установка графика на поверхности
+    TestdataProxy = new QSurfaceDataProxy();
+    Testseries = new QSurface3DSeries(TestdataProxy);
     Testgraph3D->addSeries(Testseries);
+
 
     // Настройка визуализации графика
     Testgraph3D->axisX()->setTitle("X Axis");
     Testgraph3D->axisY()->setTitle("Y Axis");
     Testgraph3D->axisZ()->setTitle("Z Axis");
+
+    QLinearGradient gradient;
+    gradient.setColorAt(0.0, Qt::blue);   // Low z-values
+    gradient.setColorAt(0.5, Qt::green);  // Mid z-values
+    gradient.setColorAt(1.0, Qt::red);    // High z-values
+
+    Testseries->setBaseGradient(gradient);
+    Testseries->setColorStyle(Q3DTheme::ColorStyleRangeGradient);
 
     // Включение вращения графика в пространстве
     Testgraph3D->activeTheme()->setType(Q3DTheme::ThemeQt);
@@ -1098,6 +1107,41 @@ void Widget::InitGraphsMain() {
 
     // Настройка камеры для вращения графика
     Maingraph3D->scene()->activeCamera()->setCameraPosition(15, 15, 15);
+}
+
+void Widget::UpdateGraphsTest() {
+    QSurfaceDataArray* TestdataArray = new QSurfaceDataArray();
+    TestdataArray->reserve(config.CountCutX);
+
+    double stepx = (config.EndXArea - config.StartXArea) / config.CountCutX;
+    double stepy = (config.EndYArea - config.StartYArea) / config.CountCutY;
+
+    for (int row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        QSurfaceDataRow* TestdataRow = new QSurfaceDataRow(config.CountCutX);
+
+        for (int col = 0; col < config.CountCutX; ++col) {
+            double x = config.StartXArea + col * stepx;
+            double y = config.StartYArea + row * stepy;
+            double val = 0.l;
+
+            if (Network->nodes[col][row] == NodeType::BOUND) {
+                val = DirTask->Boundary(x, y);
+                biasX += 1;
+            } else if (Network->nodes[col][row] == NodeType::INNER) {
+                val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
+            }
+            (*TestdataRow)[col] = QVector3D(x, val, y);
+        }
+        TestdataArray->append(TestdataRow);
+    }
+
+    TestdataProxy->resetArray(TestdataArray);
 }
 
 void Widget::UpdateGraphsMain() {

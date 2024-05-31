@@ -97,11 +97,15 @@ std::vector<double> SuccessiveOverRelax::eval() {
         VectorSub(*rhs, residual, residual);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         l++;
+        exCfg.prevsol=exCfg.solution;
+        exCfg.solution=result;
     }
 
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
     LOG_INFO_CLI("SOR Finished");
     std::cout << "Selected omega: " << omega << " Iterations total: " << l << " Elapsed time: " << duration << " Residual 2-norm: " << curr_tol << '\n';
-
+    exCfg.tolerance=curr_tol;
+    exCfg.Parametr=omega;
+    exCfg.N=l;
     return result;
 }

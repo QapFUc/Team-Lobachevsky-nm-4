@@ -49,4 +49,16 @@ struct Config {
           Task(Task), Parametr(Parametr), startX(startX), tolerance(tolerance) {}
     Config() = default;
 };
+
+struct ExitConfig {
+    size_t Iterations;
+    std::vector<double> solution;
+    std::vector<double> prevsol;
+    double N;
+    double Parametr = 0;
+    double tolerance;
+    double MaxDistance;
+    double xMaxDistance;
+    double yMaxDistance;
+};
 #endif

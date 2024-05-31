@@ -38,8 +38,12 @@ std::vector<double> SimpleIter::eval() {
         VectorSub(*rhs, residual, residual);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         k++;
+        exCfg.prevsol=exCfg.solution;
+        exCfg.solution=result;
     }
-
+    exCfg.N=k;
+    exCfg.tolerance=curr_tol;
+    exCfg.Parametr=parametr;
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
     LOG_INFO_CLI("SimpleIter finished");
     std::cout << "Iterations total: " << k << " Elapsed time: " << duration << " Residual 2-norm: " << curr_tol << '\n';

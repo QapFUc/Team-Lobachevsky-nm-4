@@ -26,6 +26,10 @@ public:
     void GenerateLinearSystem();
     void SetMethod(const nm::Method& m);
     void eval();
+    
+    MethodInterface* GetMethod() {
+        return method;
+    }
 
     std::vector<double>& Solution() {
         return solution;

@@ -1,13 +1,19 @@
 #pragma once
 
+#include <cstddef>
 #include <vector>
 #include "dataTypes/config.hpp"
+
+struct ExitConfig {
+    size_t Iterations;
+};
 
 class MethodInterface {
 protected:
     const std::vector<double>* matrix;
     const std::vector<double>* rhs;
     MethodConfig cfg;
+    ExitConfig exCfg;
 
 public:
     MethodInterface() = default;
@@ -18,5 +24,9 @@ public:
     virtual std::vector<double> eval() = 0;
 
     std::vector<double> InitialX() const;
+
+    ExitConfig GetExitConfig() const {
+        return exCfg;
+    }
 };
 

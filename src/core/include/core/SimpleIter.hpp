@@ -8,6 +8,10 @@
 #    include "dataTypes/config.hpp"
 #    include "core/vector.hpp"
 
+struct ExitConfigSimpleIter : public ExitConfig {
+    double tau;
+};
+
 class SimpleIter final : public MethodInterface {
     SimpleIterMethodConfig config;
 

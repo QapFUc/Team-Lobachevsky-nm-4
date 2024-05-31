@@ -319,7 +319,6 @@ void Widget::StartTestCGM() {
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
-    UpdateInfoTest();
 }
 
 void Widget::StartTestSOR() {
@@ -329,7 +328,6 @@ void Widget::StartTestSOR() {
     DirTask->SetMethod(nm::Method::SOR);
     DirTask->eval();
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
-    UpdateInfoTest();
 }
 
 void Widget::StartTestSimpleIter() {
@@ -339,7 +337,6 @@ void Widget::StartTestSimpleIter() {
     DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->eval();
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
-    UpdateInfoTest();
 }
 
 void Widget::SendDatabtnClick() {
@@ -367,16 +364,19 @@ void Widget::SendDatabtnClick() {
         StartTestSOR();
         UpdateTableTest();
         UpdateGraphsTest();
+        UpdateInfoTest();
         break;
     case 2:
         StartTestSimpleIter();
         UpdateTableTest();
         UpdateGraphsTest();
+        UpdateInfoTest();
         break;
     case 3:
         StartTestCGM();
         UpdateTableTest();
         UpdateGraphsTest();
+        UpdateInfoTest();
         break;
     case 4:
         StartSOR();
@@ -394,6 +394,9 @@ void Widget::SendDatabtnClick() {
         UpdateGraphsMain();
         break;
     case 7:
+        StartCGM();
+        UpdateTableMain();
+        UpdateGraphsMain();
         //StartOscil(config);
         break;
     default:
@@ -542,8 +545,8 @@ void Widget::UpdateTableTest() {
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
                     val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
-                    if (val<MaxDistance ) {
-                    MaxDistance = val;
+                        if (std::abs(val - fTrueSol_test(x, y))>MaxDistance ) {
+                    MaxDistance = std::abs(val - fTrueSol_test(x, y));
                     xMaxDistance = x;
                     yMaxDistance = y;
                     }
@@ -679,8 +682,8 @@ void Widget::UpdateTableMain() {
         TableMain_3->setVerticalHeaderItem(row, headerItem);
     }
 
-    // TableMain_1->resizeColumnsToContents();
-    // TableMain_1->resizeRowsToContents();
+    TableMain_1->resizeColumnsToContents();
+    TableMain_1->resizeRowsToContents();
     TableMain_2->resizeColumnsToContents();
     TableMain_2->resizeRowsToContents();
     TableMain_3->resizeColumnsToContents();

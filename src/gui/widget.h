@@ -60,7 +60,7 @@ private slots:
     void SendDatabtnClick();
 
 private:
-    double MaxDistance=1e10;
+    double MaxDistance=-1;
     double xMaxDistance=0;
     double yMaxDistance=0;
 

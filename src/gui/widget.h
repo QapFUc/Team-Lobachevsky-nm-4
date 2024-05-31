@@ -40,6 +40,7 @@ public:
     void CreateInfoTest();
     void CreateInfoMain();
     void CreateGraphsTest();
+    void UpdateGraphsTest() {};
     void InitGraphsMain();
     void UpdateGraphsMain();
     void CreateTable2();
@@ -47,6 +48,9 @@ public:
     void StartSimplexIter();
     void StartCGM();
     void StartSOR();
+    void StartTestCGM();
+    void StartTestSOR();
+    void StartTestSimpleIter();
     void InitDirTask();
     void UpdateDirTask();
     void UpdateInfoTest();
@@ -149,5 +153,11 @@ private:
     QLineEdit* MainLineEditInfo_20;
     QLineEdit* MainLineEditInfo_21;
     QLineEdit* MainLineEditInfo_22;
+    std::function<double(double, double)> fRHS_test;
+    std::function<double(double, double, Config)> fBound_test;
+    std::function<double(double, double)> fRHS_main;
+    std::function<double(double, double, Config)> fBound_main;
+    std::function<double(double, double)> fTrueSol_test;
+
 };
 #endif  // WIDGET_H

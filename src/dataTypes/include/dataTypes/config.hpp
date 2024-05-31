@@ -9,7 +9,7 @@
 struct MethodConfig {
     nm::StartApr startX;
     double tolerance;
-    size_t matrix_width;
+    std::vector<size_t> net_widthes;
     size_t Max_N = 0;
     size_t n;
     size_t m;

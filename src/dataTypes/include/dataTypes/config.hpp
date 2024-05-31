@@ -15,6 +15,10 @@ struct MethodConfig {
     size_t m;
 };
 
+struct SORconfig:MethodConfig{
+    double omega;
+};
+
 struct SimpleIterMethodConfig : MethodConfig {};
 
 struct Config {

@@ -239,8 +239,8 @@ void Widget::UpdateDirTask() {
 
 void Widget::UpdateInfoTest() {
 
-    TestLineEditInfo_1->setText(QString::number(config.CountCutX));
-    TestLineEditInfo_2->setText(QString::number(config.CountCutY));
+    TestLineEditInfo_1->setText(QString::number(config.CountCutX-1));
+    TestLineEditInfo_2->setText(QString::number(config.CountCutY-1));
 
     TestLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр w для МВР
     TestLineEditInfo_4->setText(QString::number(exitconfig->tolerance)); // погрешность метода 
@@ -382,16 +382,19 @@ void Widget::SendDatabtnClick() {
         StartSOR();
         UpdateTableMain();
         UpdateGraphsMain();
+        UpdateInfoMain();
         break;
     case 5:
         StartSimplexIter();
         UpdateTableMain();
         UpdateGraphsMain();
+        UpdateInfoMain();
         break;
     case 6:
         StartCGM();
         UpdateTableMain();
         UpdateGraphsMain();
+        UpdateInfoMain();
         break;
     case 7:
         StartCGM();

@@ -580,14 +580,6 @@ void Widget::InitTableMain() {
     MainTableLayout = new QVBoxLayout();
 
     tabTableMain->setLayout(MainTableLayout);
-    QVBoxLayout* MainLayout_1 = new QVBoxLayout();
-    QLabel* MainLabel_1 = new QLabel("Точное решение u(N)(x, y)", tabTableTest);
-    MainLayout_1->addWidget(MainLabel_1);
-    TableMain_1 = new QTableWidget();
-    MainLayout_1->addWidget(TableMain_1);
-    MainTableLayout->addLayout(MainLayout_1);
-
-    // 2 table
 
     QVBoxLayout* MainLayout_2 = new QVBoxLayout();
 
@@ -600,19 +592,6 @@ void Widget::InitTableMain() {
     MainLayout_2->addWidget(TableMain_2);
 
     MainTableLayout->addLayout(MainLayout_2);
-
-    // table 3
-
-    QVBoxLayout* MainLayout_3 = new QVBoxLayout();
-
-    QLabel* MainLabel_3 = new QLabel("Разность точного и численного решения в узлах сетки", tabTableTest);
-
-    MainLayout_3->addWidget(MainLabel_3);
-
-    TableMain_3 = new QTableWidget();
-    MainLayout_3->addWidget(TableMain_3);
-
-    MainTableLayout->addLayout(MainLayout_3);
 }
 
 void Widget::UpdateTableMain() {
@@ -659,35 +638,10 @@ void Widget::UpdateTableMain() {
         headerItem->setText(QString::number(config.StartXArea + row * stepy));
         TableMain_2->setVerticalHeaderItem(row, headerItem);
     }
-    // Numeric - Real solve
-    TableMain_3->setColumnCount(config.CountCutX);
-    TableMain_3->setRowCount(config.CountCutY);
-    for (int row = 0; row < config.CountCutY; ++row) {
-        for (int col = 0; col < config.CountCutX; ++col) {
-            double x = col * stepx;
-            double y = row * stepy;
-            QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::exp(std::pow(std::sin(M_PI * x * y), 2))));
-            TableMain_3->setItem(row, col, item);
-        }
-    }
-    for (int col = 0; col < config.CountCutX; ++col) {
-        QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(col * stepx));
-        TableMain_3->setHorizontalHeaderItem(col, headerItem);
-    }
-    TableMain_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    for (int row = 0; row < config.CountCutY; ++row) {
-        QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(row * stepy));
-        TableMain_3->setVerticalHeaderItem(row, headerItem);
-    }
 
-    TableMain_1->resizeColumnsToContents();
-    TableMain_1->resizeRowsToContents();
     TableMain_2->resizeColumnsToContents();
     TableMain_2->resizeRowsToContents();
-    TableMain_3->resizeColumnsToContents();
-    TableMain_3->resizeRowsToContents();
+
 }
 
 void Widget::CreateInfoTest() {

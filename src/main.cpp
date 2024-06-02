@@ -17,18 +17,18 @@
 
 //     LOG_INFO_CLI("Net generated");
 
-//     // for (size_t j = 0; j < net.nodes[0].size(); ++j) {
-//     //     for (size_t i = 0; i < net.nodes.size(); ++i) {
-//     //         if (net.nodes[i][j] == NodeType::BOUND) {
-//     //             std::cout << 'o';
-//     //         } else if (net.nodes[i][j] == NodeType::INNER) {
-//     //             std::cout << 'x';
-//     //         } else {
-//     //             std::cout << ' ';
-//     //         }
-//     //     }
-//     //     std::cout << '\n';
-//     // }
+    // for (size_t j = 0; j < net.nodes[0].size(); ++j) {
+    //     for (size_t i = 0; i < net.nodes.size(); ++i) {
+    //         if (net.nodes[i][j] == NodeType::BOUND) {
+    //             std::cout << 'o';
+    //         } else if (net.nodes[i][j] == NodeType::INNER) {
+    //             std::cout << 'x';
+    //         } else {
+    //             std::cout << ' ';
+    //         }
+    //     }
+    //     std::cout << '\n';
+    // }
 //     auto fb = [](const double& x, const double& y) -> double {
 //         return (x + y);
 //     };

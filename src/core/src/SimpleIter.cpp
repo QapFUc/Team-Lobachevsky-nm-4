@@ -2,6 +2,7 @@
 #include "core/vector.hpp"
 #include "dataTypes/common.hpp"
 #include "nm/utils/logger.hpp"
+#include <cmath>
 #include <ctime>
 #include <iostream>
 #include <vector>
@@ -29,17 +30,23 @@ std::vector<double> SimpleIter::eval() {
     LOG_INFO_CLI("Iterating SimpleIter...");
     std::clock_t start;
     double duration = 0.l;
-    double parametr = (1.l / (2 * (*matrix)[2] - 1));
+    double lambda1 = (4.l * (*matrix)[3])*std::pow(std::sin(M_PI/(2*config.n)),2)+ (4.l * (*matrix)[4])*std::pow(std::sin(M_PI/(2*config.m)),2);
+    double lambdan = (4.l * (*matrix)[3])*std::pow(std::sin((M_PI*(config.n-1))/(2*config.n)),2)+ (4.l * (*matrix)[4])*std::pow(std::sin((M_PI*(config.m-1))/(2*(config.m))),2);
+    double parametr = -2.l/(lambda1+lambdan);
+    std::cout<<parametr<<" = parametr "<<lambda1<<"< >"<<lambdan<<"  >"<< config.n<<" >" <<config.m<<std::endl;
     start = std::clock();
     while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
         VectorSum(result, residual, result, 1.l, parametr);
-
         MatrixOperate(*matrix, result, residual, cfg.net_widthes);
         VectorSub(*rhs, residual, residual);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         k++;
+        exCfg.prevsol=exCfg.solution;
+        exCfg.solution=result;
     }
-
+    exCfg.N=k;
+    exCfg.tolerance=curr_tol;
+    exCfg.Parametr=parametr;
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
     LOG_INFO_CLI("SimpleIter finished");
     std::cout << "Iterations total: " << k << " Elapsed time: " << duration << " Residual 2-norm: " << curr_tol << '\n';

@@ -51,7 +51,11 @@ std::vector<double> ConjGradMethod::eval() {
         VectorSum(residual, direction, direction, 1.l, beta);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         k++;
+        exCfg.prevsol=exCfg.solution;
+        exCfg.solution=result;
     }
+    exCfg.N=k;
+    exCfg.tolerance=curr_tol;
 
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
 

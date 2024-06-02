@@ -39,8 +39,8 @@ public:
     void UpdateTableMain();
     void CreateInfoTest();
     void CreateInfoMain();
-    void CreateGraphsTest();
-    void UpdateGraphsTest() {};
+    void InitGraphsTest();
+    void UpdateGraphsTest();
     void InitGraphsMain();
     void UpdateGraphsMain();
     void CreateTable2();
@@ -55,13 +55,21 @@ public:
     void UpdateDirTask();
     void UpdateInfoTest();
     void UpdateInfoMain();
+    void StartCGMEmptyArea();
 private slots:
 
     void SendDatabtnClick();
 
 private:
+    double MaxDistance=-1;
+    double xMaxDistance=0;
+    double yMaxDistance=0;
+
+    ExitConfig* exitconfig;
     NetPattern* Networkpattern;
     Net* Network;
+    Net* NetworkEmpty;
+    NetPattern* NetworkpatternEmpty;
     DirichletTask* DirTask;
     Config config;
 
@@ -128,7 +136,9 @@ private:
     QSurfaceDataProxy* MaindataProxy;
     QSurface3DSeries* Mainseries;
 
-
+    Q3DSurface* Testgraph3D;
+    QSurfaceDataProxy* TestdataProxy;
+    QSurface3DSeries* Testseries;
 
     QWidget* tab7;
 

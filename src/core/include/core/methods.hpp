@@ -4,9 +4,6 @@
 #include <vector>
 #include "dataTypes/config.hpp"
 
-struct ExitConfig {
-    size_t Iterations;
-};
 
 class MethodInterface {
 protected:

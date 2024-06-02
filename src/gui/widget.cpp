@@ -70,15 +70,6 @@ Widget::Widget(QWidget* parent) : QWidget(parent) {
     tabWidget->addTab(tab6, tr("График основной задачи"));
     tabWidget->addTab(tab7, tr("Справка основной задачи"));
 
-    // QLabel* label2 = new QLabel("Контент Вкладки 2", tabTableTest);
-    // QLabel* label3 = new QLabel("Контент Вкладки 3", tab3);
-
-    // tabTableTest->setLayout(new QVBoxLayout());  //WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // tabTableTest->layout()->addWidget(label2);
-
-    // tab3->setLayout(new QVBoxLayout());  //WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // tab3->layout()->addWidget(label3);
-
     InitTabTask();
 
     InitTableTest();
@@ -184,28 +175,30 @@ void Widget::InitTabTask() {
 void Widget::InitDirTask() {
     Networkpattern = (new NetPattern());
     Network = new Net();
+    NetworkpatternEmpty = (new NetPattern());
+    NetworkEmpty = new Net();
     fBound_main = [](const double& x, const double& y, const Config& config) -> double {
         if (x == config.StartXArea) {
-            return (-y * y + y);
+            return ((y-2)*(y-3));
         }
         if (x == config.EndXArea) {
-            return (y - y * y);
+            return (y*(y-2)*(y-3));
         }
         if (y == config.StartYArea) {
-            return (std::abs(std::sin(M_PI * x)));
+            return ((x-1)*(x-2));
         }
         if (y == config.EndYArea) {
-            return (std::abs(std::sin(M_PI * x)) * std::exp(x));
+            return (x*(x-1)*(x-2));
         }
         return 1;
     };
 
     fRHS_main = [](const double& x, const double& y) -> double {
-        return abs(x - y);
+        return (-1*std::exp(-1*x*y*y));
     };
 
     fTrueSol_test = [](const double& x, const double& y) -> double {
-        return std::exp(std::pow(std::sin(M_PI * x * y), 2));
+        return std::sin(M_PI*x*y);
     };
 
     fBound_test = [&](const double& x, const double& y, const Config& config) -> double {
@@ -216,8 +209,7 @@ void Widget::InitDirTask() {
     };
 
     fRHS_test = [](const double& x, const double& y) -> double {
-        double arg = M_PI * x * y;
-        return 0.5 * M_PI * M_PI * std::exp(std::pow(std::sin(arg), 2)) * (x * x + y * y) * (-1 - 4 * std::cos(2 * arg) + std::cos(4 * arg));
+        return M_PI*M_PI * (x * x + y * y) * std::sin(M_PI * x * y);
     };
 
     DirTask = new DirichletTask(fBound_main, fRHS_main, *Network, config);
@@ -232,9 +224,27 @@ void Widget::UpdateDirTask() {
                                            config.StartYArea,
                                            (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
                                            (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
-
+    NetworkpatternEmpty->setMainSpace(config.CountCutX / config.CountCutY);
+    NetworkpatternEmpty->addEmptySpace(0.75, 0, 0.75, 0);
+    *NetworkEmpty = NetworkpatternEmpty->generateNet(config.CountCutY,
+                                           config.StartXArea,
+                                           config.StartYArea,
+                                           (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
+                                           (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
     DirTask->SetConfig(config);
     DirTask->SetNet(*Network);
+    for (size_t j = 0; j < NetworkEmpty->nodes[0].size(); ++j) {
+        for (size_t i = 0; i < NetworkEmpty->nodes.size(); ++i) {
+            if (NetworkEmpty->nodes[i][j] == NodeType::BOUND) {
+                std::cout << 'o';
+            } else if (NetworkEmpty->nodes[i][j] == NodeType::INNER) {
+                std::cout << 'x';
+            } else {
+                std::cout << ' ';
+            }
+        }
+        std::cout << '\n';
+    }
 }
 
 void Widget::UpdateInfoTest() {
@@ -243,7 +253,7 @@ void Widget::UpdateInfoTest() {
     TestLineEditInfo_2->setText(QString::number(config.CountCutY-1));
 
     TestLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр w для МВР
-    TestLineEditInfo_4->setText(QString::number(exitconfig->tolerance)); // погрешность метода 
+    TestLineEditInfo_4->setText(QString::number(config.tolerance)); // погрешность метода 
 
     TestLineEditInfo_5->setText(QString::number(config.Max_N));
     TestLineEditInfo_6->setText(QString::number(exitconfig->N)); // число затрасенных итераций для решения СЛАУ
@@ -264,7 +274,7 @@ void Widget::UpdateInfoMain() {
     MainLineEditInfo_1->setText(QString::number(config.CountCutX-1));
     MainLineEditInfo_2->setText(QString::number(config.CountCutY-1));
     MainLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр метода 
-    MainLineEditInfo_4->setText(QString::number(config.Accuracy)); // критерии остановки по точности 
+    MainLineEditInfo_4->setText(QString::number(config.tolerance)); // критерии остановки по точности 
     MainLineEditInfo_5->setText(QString::number(config.Max_N)); // критерии остановки по числу итераций
     MainLineEditInfo_6->setText(QString::number(exitconfig->N)); // затраченное N на решение СЛАУ
     MainLineEditInfo_7->setText(QString::number(1)); // достигнутая точность итерац метода 
@@ -286,6 +296,7 @@ void Widget::UpdateInfoMain() {
 }
 
 void Widget::StartSimplexIter() {
+    DirTask->SetNet(*Network);
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
     DirTask->GenerateLinearSystem();
@@ -295,6 +306,17 @@ void Widget::StartSimplexIter() {
 }
 
 void Widget::StartCGM() {
+    DirTask->SetNet(*Network);
+    DirTask->SetBoundary(fBound_main);
+    DirTask->SetRHS(fRHS_main);
+    DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::CGM);
+    DirTask->eval();
+    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+}
+
+void Widget::StartCGMEmptyArea() {
+    DirTask->SetNet(*NetworkEmpty);
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
     DirTask->GenerateLinearSystem();
@@ -304,6 +326,7 @@ void Widget::StartCGM() {
 }
 
 void Widget::StartSOR() {
+    DirTask->SetNet(*Network);
     DirTask->SetBoundary(fBound_main);
     DirTask->SetRHS(fRHS_main);
     DirTask->GenerateLinearSystem();
@@ -313,6 +336,7 @@ void Widget::StartSOR() {
 }
 
 void Widget::StartTestCGM() {
+    DirTask->SetNet(*Network);
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
     DirTask->GenerateLinearSystem();
@@ -322,6 +346,7 @@ void Widget::StartTestCGM() {
 }
 
 void Widget::StartTestSOR() {
+    DirTask->SetNet(*Network);
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
     DirTask->GenerateLinearSystem();
@@ -331,6 +356,7 @@ void Widget::StartTestSOR() {
 }
 
 void Widget::StartTestSimpleIter() {
+    DirTask->SetNet(*Network);
     DirTask->SetBoundary(fBound_test);
     DirTask->SetRHS(fRHS_test);
     DirTask->GenerateLinearSystem();
@@ -397,10 +423,9 @@ void Widget::SendDatabtnClick() {
         UpdateInfoMain();
         break;
     case 7:
-        StartCGM();
+        StartCGMEmptyArea();
         UpdateTableMain();
         UpdateGraphsMain();
-        //StartOscil(config);
         break;
     default:
         //StartTest(config);
@@ -498,8 +523,8 @@ void Widget::UpdateTableTest() {
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
             if (Network->nodes[col][row] != NodeType::OUT) {
-                double x = col * stepx;
-                double y = row * stepy;
+                double x = col * stepx+config.StartXArea;
+                double y = row * stepy+config.StartYArea;
                 double val = 0.l;
 
                 if (Network->nodes[col][row] == NodeType::BOUND) {
@@ -530,6 +555,7 @@ void Widget::UpdateTableTest() {
     TableTest_3->setColumnCount(config.CountCutX);
     TableTest_3->setRowCount(config.CountCutY);
     biasY = 0;
+    MaxDistance = -1;
     for (size_t row = 0; row < config.CountCutY; ++row) {
         size_t BordersInRow = 0;
         size_t biasX = 0;
@@ -539,8 +565,8 @@ void Widget::UpdateTableTest() {
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
             if (Network->nodes[col][row] != NodeType::OUT) {
-                double x = col * stepx;
-                double y = row * stepy;
+                double x = col * stepx+config.StartXArea;
+                double y = row * stepy+config.StartYArea;
                 double val = 0.l;
 
                 if (Network->nodes[col][row] == NodeType::BOUND) {
@@ -548,7 +574,7 @@ void Widget::UpdateTableTest() {
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
                     val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
-                        if (std::abs(val - fTrueSol_test(x, y))>MaxDistance ) {
+                    if (std::abs(val - fTrueSol_test(x, y))>MaxDistance ) {
                     MaxDistance = std::abs(val - fTrueSol_test(x, y));
                     xMaxDistance = x;
                     yMaxDistance = y;
@@ -561,13 +587,13 @@ void Widget::UpdateTableTest() {
     }
     for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(col * stepx));
+        headerItem->setText(QString::number(col * stepx+config.StartXArea));
         TableTest_3->setHorizontalHeaderItem(col, headerItem);
     }
     TableTest_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(row * stepy));
+        headerItem->setText(QString::number(row * stepy+config.StartYArea));
         TableTest_3->setVerticalHeaderItem(row, headerItem);
     }
 
@@ -614,8 +640,8 @@ void Widget::UpdateTableMain() {
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
             if (Network->nodes[col][row] != NodeType::OUT) {
-                double x = col * stepx;
-                double y = row * stepy;
+                double x = col * stepx+config.StartXArea;
+                double y = row * stepy+config.StartYArea;
                 double val = 0.l;
 
                 if (Network->nodes[col][row] == NodeType::BOUND) {

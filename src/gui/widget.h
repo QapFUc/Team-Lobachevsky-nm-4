@@ -55,6 +55,7 @@ public:
     void UpdateDirTask();
     void UpdateInfoTest();
     void UpdateInfoMain();
+    void StartCGMEmptyArea();
 private slots:
 
     void SendDatabtnClick();
@@ -67,6 +68,8 @@ private:
     ExitConfig* exitconfig;
     NetPattern* Networkpattern;
     Net* Network;
+    Net* NetworkEmpty;
+    NetPattern* NetworkpatternEmpty;
     DirichletTask* DirTask;
     Config config;
 

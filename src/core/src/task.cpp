@@ -113,6 +113,8 @@ void DirichletTask::SetMethod(const nm::Method& m) {
         scfg.net_widthes = ws;
         scfg.tolerance = cfg.tolerance;
         scfg.Max_N = cfg.Max_N;
+        scfg.m=cfg.CountCutX;
+        scfg.n=cfg.CountCutY;
         this->method = new SimpleIter(&lsmatrix, &lsrhs, scfg);
     } else if (m == nm::Method::SOR) {
         SORconfig mcfg;

@@ -301,9 +301,9 @@ void Widget::UpdateInfoMain() {
     MainLineEditInfo_15->setText(QString::number(exitconfigdoublestep->Methodtolerance)); // достигнутая точность на половинном шаге 
     MainLineEditInfo_16->setText(QString::number(exitconfigdoublestep->tolerance)); // невязка СЛАУ на половинном шаге
     MainLineEditInfo_17->setText("2 норма"); // использованная норма
-    MainLineEditInfo_18->setText(QString::number(1)); // точность решения СЛАУ
-    MainLineEditInfo_19->setText(QString::number(1)); // макс отклонение в узле - х 
-    MainLineEditInfo_20->setText(QString::number(1)); // макс отклонение в узле - у
+    MainLineEditInfo_18->setText(QString::number(MaxDistancemain)); // точность решения СЛАУ
+    MainLineEditInfo_19->setText(QString::number(xMaxDistancemain)); // макс отклонение в узле - х 
+    MainLineEditInfo_20->setText(QString::number(yMaxDistancemain)); // макс отклонение в узле - у
     MainLineEditInfo_21->setText(QString("нулевое")); // начальное приближение 
     MainLineEditInfo_22->setText(QString("нулевое")); // нач приближение для полов шага
 
@@ -761,34 +761,39 @@ void Widget::UpdateTableMain() {
             }
         }
     }
+    
 
     TableMain_3->setColumnCount(config.CountCutX);
     TableMain_3->setRowCount(config.CountCutY);
+    MaxDistancemain=-1;
     for (size_t row = 0; row < config.CountCutY; ++row) {
         size_t BordersInRow = 0;
         size_t biasX = 0;
-        for (size_t l = 0; l < configdoublestep.CountCutX; ++l) {
-            if (Networkdoublestep->nodes[l][row] == NodeType::BOUND)
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
                 BordersInRow += 1;
         }
-        for (size_t col = 0; col < configdoublestep.CountCutX; ++col) {
-            if (Networkdoublestep->nodes[col][row] != NodeType::OUT) {
-                double xd = col * stpexdouble+configdoublestep.StartXArea;
-                double yd = row * stpeydouble+configdoublestep.StartYArea;
-                double x = col/2 * stepx+config.StartXArea;
-                double y = row/2 * stepy+config.StartYArea;
+        for (size_t col = 0; col < config.CountCutX; ++col) {
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx+config.StartXArea;
+                double y = row * stepy+config.StartYArea;
                 double val = 0.l;
 
-                if (Networkdoublestep->nodes[col][row] == NodeType::BOUND) {
-                    val = std::abs(DirTaskdoublestep->Boundary(xd, yd)-DirTask->Boundary(x, y));
+                if (Network->nodes[col][row] == NodeType::BOUND) {
+                    val = std::abs(DirTask->Boundary(x, y)- (TableMain_1->item(row*2,col*2)->text()).toDouble());
                     biasX += 1;
-                } else if (Networkdoublestep->nodes[col][row] == NodeType::INNER) {
-                    val = std::abs(DirTaskdoublestep->Solution()[(col - biasX) + (row - 1) * (Networkdoublestep->nodes.size() - BordersInRow)]-DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)]);
+                } else if (Network->nodes[col][row] == NodeType::INNER) {
+                    val = std::abs(DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)] - (TableMain_1->item(row*2, col*2)->text()).toDouble());
                 }
-                if ((x==xd) && (y==yd)) {
+
+                if (std::abs(val)>MaxDistancemain ) {
+                    MaxDistancemain = val;
+                    xMaxDistancemain = x;
+                    yMaxDistancemain = y;
+                    }
+
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
-                TableMain_3->setItem(row/2, col/2, item);
-                }
+                TableMain_3->setItem(row, col, item);
             }
         }
     }
@@ -801,7 +806,7 @@ void Widget::UpdateTableMain() {
     TableMain_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     for (int row = 0; row < configdoublestep.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(config.StartXArea + row * stpeydouble));
+        headerItem->setText(QString::number(config.StartYArea + row * stpeydouble));
         TableMain_1->setVerticalHeaderItem(row, headerItem);
     }
 
@@ -813,7 +818,7 @@ void Widget::UpdateTableMain() {
     TableMain_2->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(config.StartXArea + row * stepy));
+        headerItem->setText(QString::number(config.StartYArea + row * stepy));
         TableMain_2->setVerticalHeaderItem(row, headerItem);
     }
 
@@ -825,7 +830,7 @@ void Widget::UpdateTableMain() {
     TableMain_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(config.StartXArea + row * stepy));
+        headerItem->setText(QString::number(config.StartYArea + row * stepy));
         TableMain_3->setVerticalHeaderItem(row, headerItem);
     }
 

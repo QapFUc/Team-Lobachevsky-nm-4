@@ -65,13 +65,22 @@ private:
     double xMaxDistance=0;
     double yMaxDistance=0;
 
+    double MaxDistancemain=-1;
+    double xMaxDistancemain=0;
+    double yMaxDistancemain=0;
+
     ExitConfig* exitconfig;
+    ExitConfig* exitconfigdoublestep;
     NetPattern* Networkpattern;
+    NetPattern* Networkpatterndoublestep;
     Net* Network;
+    Net* Networkdoublestep;
     Net* NetworkEmpty;
     NetPattern* NetworkpatternEmpty;
     DirichletTask* DirTask;
+    DirichletTask* DirTaskdoublestep;
     Config config;
+    Config configdoublestep;
 
     QTabWidget* tabWidget;
     // TaskTab

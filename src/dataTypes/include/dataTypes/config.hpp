@@ -57,6 +57,7 @@ struct ExitConfig {
     double N;
     double Parametr = 0;
     double tolerance;
+    double Methodtolerance;
     double MaxDistance;
     double xMaxDistance;
     double yMaxDistance;

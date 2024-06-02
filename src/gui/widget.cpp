@@ -122,7 +122,7 @@ void Widget::InitTabTask() {
     InputTask->addItem("Выбрать задачу");
     InputTask->addItem("Тестовая Колганов");
     InputTask->addItem("Тестовая Усов");
-    InputTask->addItem("Тестовая Сучков/Руяткин");
+    InputTask->addItem("Тестовая Сучков");
     InputTask->addItem("Первая ступень Колганов");
     InputTask->addItem("Вторая ступень Усов");
     InputTask->addItem("Вторая ступень Сучков");

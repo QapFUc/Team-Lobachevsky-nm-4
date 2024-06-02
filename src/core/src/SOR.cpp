@@ -22,7 +22,6 @@ static double GetOutDiagSumm(const size_t& m, const std::vector<size_t>& widthes
         s += widthes[L];
     }
 
-    
     size_t width = widthes[L];
     i = m % width;
     j = m / width;
@@ -61,10 +60,22 @@ static double GetOutDiagSumm(const size_t& m, const std::vector<size_t>& widthes
     return A[k] * cX[0] + A[k + 1] * cX[1] + A[k + 3] * cX[2] + A[k + 4] * cX[3];
 }
 
+static double InfNorm(const std::vector<double>& x) {
+    double res = 0l;
+
+    for (const auto& comp : x) {
+        if (std::abs(comp) > res)
+            res = std::abs(comp);
+    }
+
+    return res;
+}
+
 std::vector<double> SuccessiveOverRelax::eval() {
     LOG_INFO_CLI("Creating vectors");
     std::vector<double> result(rhs->size());
     std::vector<double> residual(rhs->size());
+    std::vector<double> diff(rhs->size());
     double ksq = 1.l / (*matrix)[4];
     double hsq = 1.l / (*matrix)[3];
     double k = std::sqrt(ksq);
@@ -79,8 +90,10 @@ std::vector<double> SuccessiveOverRelax::eval() {
     LOG_INFO_CLI("Evaluating start residual");
     MatrixOperate(*matrix, result, residual, cfg.net_widthes);
     VectorSub(*rhs, residual, residual);
+    double resid_norm = std::sqrt(EuclidianNormSq(residual));
+    std::cout << "Initial residual 2-norm (R(0)) = " << resid_norm << '\n';
 
-    double curr_tol = std::sqrt(EuclidianNormSq(residual));
+    double curr_tol = 1e15;
     double omegaInv = (1 / omega - 1);
 
     size_t l = 0;
@@ -89,23 +102,26 @@ std::vector<double> SuccessiveOverRelax::eval() {
     LOG_INFO_CLI("Iterating SOR...");
     start = std::clock();
     while (curr_tol >= cfg.tolerance && l < cfg.Max_N) {
+        exCfg.prevsol = result;
         for (size_t m = 0; m < result.size(); ++m) {
             result[m] = (omega / (*matrix)[2]) * (omegaInv * (*matrix)[2] * result[m] - GetOutDiagSumm(m, cfg.net_widthes, result, *matrix) + (*rhs)[m]);
         }
 
         MatrixOperate(*matrix, result, residual, cfg.net_widthes);
         VectorSub(*rhs, residual, residual);
-        curr_tol = std::sqrt(EuclidianNormSq(residual));
+        VectorSub(result, exCfg.prevsol, diff);
+        curr_tol = InfNorm(diff);
+        resid_norm = std::sqrt(EuclidianNormSq(residual));
         l++;
-        exCfg.prevsol=exCfg.solution;
-        exCfg.solution=result;
+        exCfg.solution = result;
     }
 
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
     LOG_INFO_CLI("SOR Finished");
     std::cout << "Selected omega: " << omega << " Iterations total: " << l << " Elapsed time: " << duration << " Residual 2-norm: " << curr_tol << '\n';
-    exCfg.tolerance=curr_tol;
-    exCfg.Parametr=omega;
-    exCfg.N=l;
+    exCfg.tolerance = resid_norm;
+    exCfg.Parametr = omega;
+    exCfg.N = l;
+    exCfg.Methodtolerance = curr_tol;
     return result;
 }

@@ -70,7 +70,7 @@ std::vector<double> ConjGradMethod::eval() {
         curr_tol = InfNorm(diff);
     }
     exCfg.N = k;
-    exCfg.tolerance = curr_tol;
+    exCfg.tolerance = resid_norm;
     exCfg.solution = result;
     exCfg.Methodtolerance = curr_tol;
 

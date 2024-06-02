@@ -122,7 +122,7 @@ void Widget::InitTabTask() {
     InputTask->addItem("Выбрать задачу");
     InputTask->addItem("Тестовая Колганов");
     InputTask->addItem("Тестовая Усов");
-    InputTask->addItem("Тестовая Сучков/Руяткин");
+    InputTask->addItem("Тестовая Сучков");
     InputTask->addItem("Первая ступень Колганов");
     InputTask->addItem("Вторая ступень Усов");
     InputTask->addItem("Вторая ступень Сучков");
@@ -224,27 +224,15 @@ void Widget::UpdateDirTask() {
                                            config.StartYArea,
                                            (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
                                            (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
-    NetworkpatternEmpty->setMainSpace(config.CountCutX / config.CountCutY);
-    NetworkpatternEmpty->addEmptySpace(0.75, 0, 0.75, 0);
-    *NetworkEmpty = NetworkpatternEmpty->generateNet(config.CountCutY,
-                                           config.StartXArea,
-                                           config.StartYArea,
-                                           (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
-                                           (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
+    // NetworkpatternEmpty->setMainSpace(config.CountCutX / config.CountCutY);
+    // NetworkpatternEmpty->addEmptySpace(0.75, 0, 0.75, 0);
+    // *NetworkEmpty = NetworkpatternEmpty->generateNet(config.CountCutY,
+    //                                        config.StartXArea,
+    //                                        config.StartYArea,
+    //                                        (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
+    //                                        (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
     DirTask->SetConfig(config);
     DirTask->SetNet(*Network);
-    for (size_t j = 0; j < NetworkEmpty->nodes[0].size(); ++j) {
-        for (size_t i = 0; i < NetworkEmpty->nodes.size(); ++i) {
-            if (NetworkEmpty->nodes[i][j] == NodeType::BOUND) {
-                std::cout << 'o';
-            } else if (NetworkEmpty->nodes[i][j] == NodeType::INNER) {
-                std::cout << 'x';
-            } else {
-                std::cout << ' ';
-            }
-        }
-        std::cout << '\n';
-    }
 }
 
 void Widget::UpdateInfoTest() {

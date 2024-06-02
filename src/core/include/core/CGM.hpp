@@ -2,6 +2,7 @@
 
 #include "core/methods.hpp"
 #include "dataTypes/config.hpp"
+#include <functional>
 
 class ConjGradMethod final : public MethodInterface {
 public:

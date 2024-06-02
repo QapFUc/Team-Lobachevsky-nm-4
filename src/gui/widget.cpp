@@ -632,9 +632,19 @@ void Widget::InitTableMain() {
 
     tabTableMain->setLayout(MainTableLayout);
 
+    QVBoxLayout* MainLayout_1 = new QVBoxLayout();
+
+    QLabel* MainLabel_1 = new QLabel("Численное решение v(N)(x, y) в узлах сетки", tabTableTest);
+
+    MainLayout_1->addWidget(MainLabel_1);
+
+    TableMain_1 = new QTableWidget();
+
+    MainLayout_1->addWidget(TableMain_1);
+
     QVBoxLayout* MainLayout_2 = new QVBoxLayout();
 
-    QLabel* MainLabel_2 = new QLabel("Численное решение v(N)(x, y) в узлах сетки", tabTableTest);
+    QLabel* MainLabel_2 = new QLabel("Численное решение v(N)2(x, y) в узлах сетки", tabTableTest);
 
     MainLayout_2->addWidget(MainLabel_2);
 
@@ -643,6 +653,16 @@ void Widget::InitTableMain() {
     MainLayout_2->addWidget(TableMain_2);
 
     MainTableLayout->addLayout(MainLayout_2);
+
+    QVBoxLayout* MainLayout_3 = new QVBoxLayout();
+
+    QLabel* MainLabel_3 = new QLabel("|v(N)(x, y) - v2(N)(x, y)|", tabTableTest);
+
+    MainLayout_3->addWidget(MainLabel_3);
+
+    TableMain_3 = new QTableWidget();
+
+    MainLayout_2->addWidget(TableMain_3);
 }
 
 void Widget::UpdateTableMain() {
@@ -651,8 +671,8 @@ void Widget::UpdateTableMain() {
     double stepy = Network->step_y;
 
     // Numeric solve
-    TableMain_2->setColumnCount(config.CountCutX);
-    TableMain_2->setRowCount(config.CountCutY);
+    TableMain_1->setColumnCount(config.CountCutX);
+    TableMain_1->setRowCount(config.CountCutY);
     for (size_t row = 0; row < config.CountCutY; ++row) {
         size_t BordersInRow = 0;
         size_t biasX = 0;
@@ -674,10 +694,54 @@ void Widget::UpdateTableMain() {
                 }
 
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
+                TableMain_1->setItem(row, col, item);
+            }
+        }
+    }
+    for (int col = 0; col < config.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + col * stepx));
+        TableMain_1->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableMain_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + row * stepy));
+        TableMain_1->setVerticalHeaderItem(row, headerItem);
+    }
+
+    size_t width = Network->nodes.size() - 2;
+    size_t width2x = NetworkDoubledSides->nodes.size() - 2;
+
+    // Numeric solution w/ half steps
+    TableMain_2->setColumnCount(config.CountCutX);
+    TableMain_2->setRowCount(config.CountCutY);
+    for (size_t row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < config.CountCutX; ++col) {
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx + config.StartXArea;
+                double y = row * stepy + config.StartYArea;
+                double val = 0.l;
+
+                if (Network->nodes[col][row] == NodeType::BOUND) {
+                    val = DirTask->Boundary(x, y);
+                    biasX += 1;
+                } else if (Network->nodes[col][row] == NodeType::INNER) {
+                    val = sol2[2 * (col - biasX) + 2 * (row - 1) * width2x];
+                }
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
                 TableMain_2->setItem(row, col, item);
             }
         }
     }
+
     for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
         headerItem->setText(QString::number(config.StartXArea + col * stepx));
@@ -690,8 +754,52 @@ void Widget::UpdateTableMain() {
         TableMain_2->setVerticalHeaderItem(row, headerItem);
     }
 
+    TableMain_3->setColumnCount(config.CountCutX);
+    TableMain_3->setRowCount(config.CountCutY);
+    for (size_t row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < config.CountCutX; ++col) {
+            if (Network->nodes[col][row] != NodeType::OUT) {
+                double x = col * stepx + config.StartXArea;
+                double y = row * stepy + config.StartYArea;
+                double val = 0.l;
+
+                if (Network->nodes[col][row] == NodeType::BOUND) {
+                    val = DirTask->Boundary(x, y);
+                    biasX += 1;
+                } else if (Network->nodes[col][row] == NodeType::INNER) {
+                    val = std::abs(sol1[(col - 1) + (row - 1) * width] - sol2[2 * (col - 1) + 2 * (row - 1) * width2x]);
+                }
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
+                TableMain_3->setItem(row, col, item);
+            }
+        }
+    }
+
+    for (int col = 0; col < config.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + col * stepx));
+        TableMain_3->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableMain_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + row * stepy));
+        TableMain_3->setVerticalHeaderItem(row, headerItem);
+    }
+
+    TableMain_1->resizeColumnsToContents();
+    TableMain_1->resizeRowsToContents();
     TableMain_2->resizeColumnsToContents();
     TableMain_2->resizeRowsToContents();
+    TableMain_3->resizeColumnsToContents();
+    TableMain_3->resizeRowsToContents();
 }
 
 void Widget::CreateInfoTest() {

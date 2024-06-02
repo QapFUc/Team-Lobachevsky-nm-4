@@ -26,8 +26,8 @@ struct Config {
     double EndXArea = .0;
     double StartYArea = .0;
     double EndYArea = .0;
-    double CountCutX = .0;
-    double CountCutY = .0;
+    size_t CountCutX = .0;
+    size_t CountCutY = .0;
     double Accuracy = 1.0;
     size_t Max_N = 0;
     size_t Parametr = 0;

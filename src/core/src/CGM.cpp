@@ -77,6 +77,7 @@ std::vector<double> ConjGradMethod::eval() {
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
 
     LOG_INFO_CLI("CGM Finished");
+    std::cout << "---Total results---\n";
     std::cout << "Required tolerance: " << cfg.tolerance << '\n' << "Result tolerance: " << curr_tol << '\n' << "Iterations total: " << k << '\n' << "Elapsed time: " << duration << '\n' << "Residual 2-norm: " << resid_norm << '\n';
 
     return result;

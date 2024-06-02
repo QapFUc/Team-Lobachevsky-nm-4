@@ -25,6 +25,7 @@
 #include <qpushbutton.h>
 #include <signal.h>
 #include <iostream>
+#include <vector>
 
 class Widget : public QWidget {
     Q_OBJECT
@@ -69,9 +70,11 @@ private:
     NetPattern* Networkpattern;
     Net* Network;
     Net* NetworkEmpty;
+    Net* NetworkDoubledSides;
     NetPattern* NetworkpatternEmpty;
     DirichletTask* DirTask;
     Config config;
+    Config configDoubledSides;
 
     QTabWidget* tabWidget;
     // TaskTab
@@ -168,6 +171,9 @@ private:
     std::function<double(double, double)> fRHS_main;
     std::function<double(double, double, Config)> fBound_main;
     std::function<double(double, double)> fTrueSol_test;
+
+    std::vector<double> sol1;
+    std::vector<double> sol2;
 
 };
 #endif  // WIDGET_H

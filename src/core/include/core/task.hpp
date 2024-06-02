@@ -50,7 +50,7 @@ public:
         this->cfg = config;
     }
 
-    double Boundary(const double& x, const double& y) {
+    double Boundary(const double& x, const double& y) const {
         return fBoundary(x, y, cfg);
     }
 

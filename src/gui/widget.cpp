@@ -16,6 +16,8 @@
 #include <qstyleoption.h>
 #include <qtextedit.h>
 #include <qwidget.h>
+#include <tuple>
+#include <vector>
 
 Widget::Widget(QWidget* parent) : QWidget(parent) {
     setWindowTitle("LobachevskyLab");
@@ -172,33 +174,45 @@ void Widget::InitTabTask() {
     InitDirTask();
 }
 
+static std::tuple<double, double, double> findMaxAbsDifference(const Net& Network,
+                                                               std::function<double(double, double)>& ref,
+                                                               const std::vector<double>& sol,
+                                                               const Config& config);
+
+static std::tuple<double, double, double> findMaxAbsDifference(const Net& Network,
+                                                               const Net& Network2s,
+                                                               std::vector<double>& ref,
+                                                               const std::vector<double>& sol,
+                                                               const Config& config);
+
 void Widget::InitDirTask() {
     Networkpattern = (new NetPattern());
     Network = new Net();
     NetworkpatternEmpty = (new NetPattern());
     NetworkEmpty = new Net();
+    NetworkDoubledSides = new Net();
     fBound_main = [](const double& x, const double& y, const Config& config) -> double {
         if (x == config.StartXArea) {
-            return ((y-2)*(y-3));
+            return ((y - 2) * (y - 3));
         }
         if (x == config.EndXArea) {
-            return (y*(y-2)*(y-3));
+            return (y * (y - 2) * (y - 3));
         }
         if (y == config.StartYArea) {
-            return ((x-1)*(x-2));
+            return ((x - 1) * (x - 2));
         }
         if (y == config.EndYArea) {
-            return (x*(x-1)*(x-2));
+            return (x * (x - 1) * (x - 2));
         }
         return 1;
     };
 
     fRHS_main = [](const double& x, const double& y) -> double {
-        return (-1*std::exp(-1*x*y*y));
+        return (-1 * std::exp(-1 * x * y * y));
     };
 
     fTrueSol_test = [](const double& x, const double& y) -> double {
-        return std::sin(M_PI*x*y);
+        return std::sin(M_PI * x * y);
     };
 
     fBound_test = [&](const double& x, const double& y, const Config& config) -> double {
@@ -209,16 +223,18 @@ void Widget::InitDirTask() {
     };
 
     fRHS_test = [](const double& x, const double& y) -> double {
-        return M_PI*M_PI * (x * x + y * y) * std::sin(M_PI * x * y);
+        return M_PI * M_PI * (x * x + y * y) * std::sin(M_PI * x * y);
     };
 
     DirTask = new DirichletTask(fBound_main, fRHS_main, *Network, config);
 }
 
 void Widget::UpdateDirTask() {
+    Networkpattern->setMainSpace(static_cast<double>(config.CountCutX) / config.CountCutY);
+    size_t n2 = config.CountCutY * 2 + 1;
     config.CountCutX += 1;
     config.CountCutY += 1;
-    Networkpattern->setMainSpace(config.CountCutX / config.CountCutY);
+
     *Network = Networkpattern->generateNet(config.CountCutY,
                                            config.StartXArea,
                                            config.StartYArea,
@@ -231,56 +247,60 @@ void Widget::UpdateDirTask() {
     //                                        config.StartYArea,
     //                                        (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
     //                                        (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
+
+    *NetworkDoubledSides = Networkpattern->generateNet(n2,
+                                                       config.StartXArea,
+                                                       config.StartYArea,
+                                                       (config.EndXArea - config.StartXArea) / (n2 - 1),
+                                                       (config.EndYArea - config.StartYArea) / (n2 - 1));
+
     DirTask->SetConfig(config);
     DirTask->SetNet(*Network);
 }
 
 void Widget::UpdateInfoTest() {
+    TestLineEditInfo_1->setText(QString::number(config.CountCutX - 1));
+    TestLineEditInfo_2->setText(QString::number(config.CountCutY - 1));
 
-    TestLineEditInfo_1->setText(QString::number(config.CountCutX-1));
-    TestLineEditInfo_2->setText(QString::number(config.CountCutY-1));
-
-    TestLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр w для МВР
-    TestLineEditInfo_4->setText(QString::number(config.tolerance)); // погрешность метода 
+    TestLineEditInfo_3->setText(QString::number(exitconfig->Parametr));  // параметр w для МВР
+    TestLineEditInfo_4->setText(QString::number(config.tolerance));      // погрешность метода
 
     TestLineEditInfo_5->setText(QString::number(config.Max_N));
-    TestLineEditInfo_6->setText(QString::number(exitconfig->N)); // число затрасенных итераций для решения СЛАУ
+    TestLineEditInfo_6->setText(QString::number(exitconfig->N));  // число затрасенных итераций для решения СЛАУ
 
-    TestLineEditInfo_7->setText(QString::number(1)); // точность итерационного метода 
-    TestLineEditInfo_8->setText(QString::number(exitconfig->tolerance)); // невязка слау
+    TestLineEditInfo_7->setText(QString::number(1));                      // точность итерационного метода
+    TestLineEditInfo_8->setText(QString::number(exitconfig->tolerance));  // невязка слау
 
-    TestLineEditInfo_9->setText(QString("2 норма")); // норма невязки слау
-    TestLineEditInfo_10->setText(QString::number(MaxDistance)); // макс разность между точным и численным решением
+    TestLineEditInfo_9->setText(QString("2 норма"));             // норма невязки слау
+    TestLineEditInfo_10->setText(QString::number(MaxDistance));  // макс разность между точным и численным решением
 
-    TestLineEditInfo_11->setText(QString::number(xMaxDistance)); // узел в котором макс отклонение - х
-    TestLineEditInfo_12->setText(QString::number(yMaxDistance)); // узел в макс отклонение - у
-    TestLineEditInfo_13->setText(QString("нулевое")); // начальное пиближение
+    TestLineEditInfo_11->setText(QString::number(xMaxDistance));  // узел в котором макс отклонение - х
+    TestLineEditInfo_12->setText(QString::number(yMaxDistance));  // узел в макс отклонение - у
+    TestLineEditInfo_13->setText(QString("нулевое"));             // начальное пиближение
 }
 
 void Widget::UpdateInfoMain() {
-
-    MainLineEditInfo_1->setText(QString::number(config.CountCutX-1));
-    MainLineEditInfo_2->setText(QString::number(config.CountCutY-1));
-    MainLineEditInfo_3->setText(QString::number(exitconfig->Parametr)); // параметр метода 
-    MainLineEditInfo_4->setText(QString::number(config.tolerance)); // критерии остановки по точности 
-    MainLineEditInfo_5->setText(QString::number(config.Max_N)); // критерии остановки по числу итераций
-    MainLineEditInfo_6->setText(QString::number(exitconfig->N)); // затраченное N на решение СЛАУ
-    MainLineEditInfo_7->setText(QString::number(1)); // достигнутая точность итерац метода 
-    MainLineEditInfo_8->setText(QString::number(1)); // невязка решения СЛАУ
-    MainLineEditInfo_9->setText(QString("2 норма")); // норма для невязки 
-    MainLineEditInfo_11->setText(QString::number(1)); // параметр МВР с половинным шагом
-    MainLineEditInfo_12->setText(QString::number(1)); // крит остановки по точности на половинном шаге
-    MainLineEditInfo_13->setText(QString::number(1)); // остановка по числу итераций на половинном шаге 
-    MainLineEditInfo_14->setText(QString::number(1)); // затраченное число итераций для решения СЛАУ на полов шаге
-    MainLineEditInfo_15->setText(QString::number(1)); // достигнутая точность на половинном шаге 
-    MainLineEditInfo_16->setText(QString::number(1)); // невязка СЛАУ на половинном шаге
-    MainLineEditInfo_17->setText("2 норма"); // использованная норма
-    MainLineEditInfo_18->setText(QString::number(1)); // точность решения СЛАУ
-    MainLineEditInfo_19->setText(QString::number(1)); // макс отклонение в узле - х 
-    MainLineEditInfo_20->setText(QString::number(1)); // макс отклонение в узле - у
-    MainLineEditInfo_21->setText(QString("нулевое")); // начальное приближение 
-    MainLineEditInfo_22->setText(QString("нулевое")); // нач приближение для полов шага
-
+    MainLineEditInfo_1->setText(QString::number(config.CountCutX - 1));
+    MainLineEditInfo_2->setText(QString::number(config.CountCutY - 1));
+    MainLineEditInfo_3->setText(QString::number(exitconfig->Parametr));  // параметр метода
+    MainLineEditInfo_4->setText(QString::number(config.tolerance));      // критерии остановки по точности
+    MainLineEditInfo_5->setText(QString::number(config.Max_N));          // критерии остановки по числу итераций
+    MainLineEditInfo_6->setText(QString::number(exitconfig->N));         // затраченное N на решение СЛАУ
+    MainLineEditInfo_7->setText(QString::number(1));                     // достигнутая точность итерац метода
+    MainLineEditInfo_8->setText(QString::number(1));                     // невязка решения СЛАУ
+    MainLineEditInfo_9->setText(QString("2 норма"));                     // норма для невязки
+    MainLineEditInfo_11->setText(QString::number(1));                    // параметр МВР с половинным шагом
+    MainLineEditInfo_12->setText(QString::number(1));                    // крит остановки по точности на половинном шаге
+    MainLineEditInfo_13->setText(QString::number(1));  // остановка по числу итераций на половинном шаге
+    MainLineEditInfo_14->setText(QString::number(1));  // затраченное число итераций для решения СЛАУ на полов шаге
+    MainLineEditInfo_15->setText(QString::number(1));  // достигнутая точность на половинном шаге
+    MainLineEditInfo_16->setText(QString::number(1));  // невязка СЛАУ на половинном шаге
+    MainLineEditInfo_17->setText("2 норма");           // использованная норма
+    MainLineEditInfo_18->setText(QString::number(1));  // точность решения СЛАУ
+    MainLineEditInfo_19->setText(QString::number(1));  // макс отклонение в узле - х
+    MainLineEditInfo_20->setText(QString::number(1));  // макс отклонение в узле - у
+    MainLineEditInfo_21->setText(QString("нулевое"));  // начальное приближение
+    MainLineEditInfo_22->setText(QString("нулевое"));  // нач приближение для полов шага
 }
 
 void Widget::StartSimplexIter() {
@@ -290,7 +310,7 @@ void Widget::StartSimplexIter() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartCGM() {
@@ -300,7 +320,18 @@ void Widget::StartCGM() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    sol1 = DirTask->Solution();
+
+    DirTask->SetNet(*NetworkDoubledSides);
+    DirTask->GenerateLinearSystem();
+    DirTask->SetMethod(nm::Method::CGM);
+    DirTask->eval();
+    sol2 = DirTask->Solution();
+
+    auto [max, x, y] = findMaxAbsDifference(*Network, *NetworkDoubledSides, sol2, sol1, config);
+    std::cout << "Max differecnce w/ half step solution (v2(x,y) - v(x,y)): " << max << " In (" << x << ", " << y << ")\n";
+
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartCGMEmptyArea() {
@@ -310,7 +341,7 @@ void Widget::StartCGMEmptyArea() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartSOR() {
@@ -320,7 +351,7 @@ void Widget::StartSOR() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SOR);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartTestCGM() {
@@ -330,7 +361,10 @@ void Widget::StartTestCGM() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
+
+    auto [max, x, y] = findMaxAbsDifference(*Network, fTrueSol_test, DirTask->Solution(), config);
+    std::cout << "Max differecnce w/ true solution (u*(x,y) - v(x,y)): " << max << " In (" << x << ", " << y << ")\n";
 }
 
 void Widget::StartTestSOR() {
@@ -340,7 +374,7 @@ void Widget::StartTestSOR() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SOR);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartTestSimpleIter() {
@@ -350,7 +384,7 @@ void Widget::StartTestSimpleIter() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->eval();
-    *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfig = DirTask->GetMethod()->GetExitConfig();
 }
 
 void Widget::SendDatabtnClick() {
@@ -511,8 +545,8 @@ void Widget::UpdateTableTest() {
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
             if (Network->nodes[col][row] != NodeType::OUT) {
-                double x = col * stepx+config.StartXArea;
-                double y = row * stepy+config.StartYArea;
+                double x = col * stepx + config.StartXArea;
+                double y = row * stepy + config.StartYArea;
                 double val = 0.l;
 
                 if (Network->nodes[col][row] == NodeType::BOUND) {
@@ -553,8 +587,8 @@ void Widget::UpdateTableTest() {
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
             if (Network->nodes[col][row] != NodeType::OUT) {
-                double x = col * stepx+config.StartXArea;
-                double y = row * stepy+config.StartYArea;
+                double x = col * stepx + config.StartXArea;
+                double y = row * stepy + config.StartYArea;
                 double val = 0.l;
 
                 if (Network->nodes[col][row] == NodeType::BOUND) {
@@ -562,10 +596,10 @@ void Widget::UpdateTableTest() {
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
                     val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
-                    if (std::abs(val - fTrueSol_test(x, y))>MaxDistance ) {
-                    MaxDistance = std::abs(val - fTrueSol_test(x, y));
-                    xMaxDistance = x;
-                    yMaxDistance = y;
+                    if (std::abs(val - fTrueSol_test(x, y)) > MaxDistance) {
+                        MaxDistance = std::abs(val - fTrueSol_test(x, y));
+                        xMaxDistance = x;
+                        yMaxDistance = y;
                     }
                 }
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(std::abs(val - fTrueSol_test(x, y))));
@@ -575,13 +609,13 @@ void Widget::UpdateTableTest() {
     }
     for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(col * stepx+config.StartXArea));
+        headerItem->setText(QString::number(col * stepx + config.StartXArea));
         TableTest_3->setHorizontalHeaderItem(col, headerItem);
     }
     TableTest_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(row * stepy+config.StartYArea));
+        headerItem->setText(QString::number(row * stepy + config.StartYArea));
         TableTest_3->setVerticalHeaderItem(row, headerItem);
     }
 
@@ -628,15 +662,15 @@ void Widget::UpdateTableMain() {
         }
         for (size_t col = 0; col < config.CountCutX; ++col) {
             if (Network->nodes[col][row] != NodeType::OUT) {
-                double x = col * stepx+config.StartXArea;
-                double y = row * stepy+config.StartYArea;
+                double x = col * stepx + config.StartXArea;
+                double y = row * stepy + config.StartYArea;
                 double val = 0.l;
 
                 if (Network->nodes[col][row] == NodeType::BOUND) {
                     val = DirTask->Boundary(x, y);
                     biasX += 1;
                 } else if (Network->nodes[col][row] == NodeType::INNER) {
-                    val = DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
+                    val = sol1[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)];
                 }
 
                 QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
@@ -658,7 +692,6 @@ void Widget::UpdateTableMain() {
 
     TableMain_2->resizeColumnsToContents();
     TableMain_2->resizeRowsToContents();
-
 }
 
 void Widget::CreateInfoTest() {
@@ -753,7 +786,8 @@ void Widget::CreateInfoTest() {
     QSpacerItem* spacer_9 = new QSpacerItem(10, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
     TestInfoLayout_4->addItem(spacer_9);
 
-    QLabel* TestLabelInfo_10 = new QLabel("Тестовая задача должна быть решена с погрешностью не более E = 0.5 * 10^(-6), задача решена с погрешностью = ", tab4);
+    QLabel* TestLabelInfo_10 =
+        new QLabel("Тестовая задача должна быть решена с погрешностью не более E = 0.5 * 10^(-6), задача решена с погрешностью = ", tab4);
     TestLineEditInfo_10 = new QLineEdit();
     TestLineEditInfo_10->setMaximumWidth(250);
     TestInfoLayout_5->addWidget(TestLabelInfo_10, 0, Qt::AlignRight);
@@ -797,7 +831,6 @@ void Widget::CreateInfoTest() {
     TestInfoLayout->addLayout(TestInfoLayout_6);
     TestInfoLayout->addLayout(TestInfoLayout_7);
 }
-
 
 void Widget::CreateInfoMain() {
     MainInfoLayout = new QVBoxLayout();
@@ -895,8 +928,7 @@ void Widget::CreateInfoMain() {
     QSpacerItem* spacer_9 = new QSpacerItem(10, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
     MainInfoLayout_4->addItem(spacer_9);
 
-    QLabel* MainLabelInfo_11 =
-        new QLabel("Для контроля точности решения исп. сетка с половинным шагом, парам. метода (2) = ", tab7);
+    QLabel* MainLabelInfo_11 = new QLabel("Для контроля точности решения исп. сетка с половинным шагом, парам. метода (2) = ", tab7);
     MainLineEditInfo_11 = new QLineEdit();
     MainLineEditInfo_11->setMaximumWidth(250);
     MainInfoLayout_6->addWidget(MainLabelInfo_11, 0, Qt::AlignRight);
@@ -1019,7 +1051,6 @@ void Widget::CreateInfoMain() {
     MainInfoLayout->addLayout(MainInfoLayout_11);
 }
 
-
 void Widget::InitGraphsTest() {
     Testgraph3D = new Q3DSurface();
     QWidget* container = QWidget::createWindowContainer(Testgraph3D);
@@ -1030,7 +1061,6 @@ void Widget::InitGraphsTest() {
     TestdataProxy = new QSurfaceDataProxy();
     Testseries = new QSurface3DSeries(TestdataProxy);
     Testgraph3D->addSeries(Testseries);
-
 
     // Настройка визуализации графика
     Testgraph3D->axisX()->setTitle("X Axis");
@@ -1220,4 +1250,77 @@ void Widget::CreateGraphs() {
     tab4GraphWidget->layout()->addWidget(chartView);
 
     tabWidget->addTab(tab4GraphWidget, tr("График"));
+}
+
+static std::tuple<double, double, double> findMaxAbsDifference(const Net& Network,
+                                                               std::function<double(double, double)>& ref,
+                                                               const std::vector<double>& sol,
+                                                               const Config& config) {
+    double x = Network.x_start;
+    double y = Network.y_start;
+
+    double max = 0l;
+    double max_x = x;
+    double max_y = y;
+
+    for (int row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < config.CountCutX; ++l) {
+            if (Network.nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+
+        for (int col = 0; col < config.CountCutX; ++col) {
+            x = Network.x_start + col * Network.step_x;
+            y = Network.y_start + row * Network.step_y;
+            double val = 0.l;
+
+            if (Network.nodes[col][row] == NodeType::BOUND) {
+                biasX += 1;
+            } else if (Network.nodes[col][row] == NodeType::INNER) {
+                val = std::abs(sol[(col - biasX) + (row - 1) * (Network.nodes.size() - BordersInRow)] - ref(x, y));
+            }
+            if (val > max) {
+                max = val;
+                max_x = x;
+                max_y = y;
+            }
+        }
+    }
+
+    return { max, max_x, max_y };
+}
+
+static std::tuple<double, double, double> findMaxAbsDifference(const Net& Network,
+                                                               const Net& Network2s,
+                                                               std::vector<double>& ref,
+                                                               const std::vector<double>& sol,
+                                                               const Config& config) {
+    double x = Network.x_start;
+    double y = Network.y_start;
+
+    double max = 0l;
+    double max_x = x;
+    double max_y = y;
+
+    double val = 0l;
+
+    size_t width = Network.nodes.size() - 2;
+    size_t widthx2 = Network2s.nodes.size() - 2;
+
+    for (size_t j = 0; j < Network.nodes[0].size() - 2; ++j) {
+        for (size_t i = 0; i < width; ++i) {
+            x = Network.x_start + i * Network.step_x;
+            y = Network.y_start + j * Network.step_y;
+            val = std::abs(sol[i + j * width] - ref[2 * i + 2 * j * widthx2]);
+            if (val > max) {
+                max = val;
+                max_x = x;
+                max_y = y;
+            }
+        }
+    }
+
+    return { max, max_x, max_y };
 }

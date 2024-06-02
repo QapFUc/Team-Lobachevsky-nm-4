@@ -18,13 +18,13 @@ std::vector<double> SimpleIter::eval() {
 
     LOG_INFO_CLI("Init X");
     result = InitialX();
-
     LOG_INFO_CLI("Evaluating start residual");
     MatrixOperate(*matrix, result, residual, cfg.net_widthes);
     VectorSub(*rhs, residual, residual);
 
     // start direction
     double curr_tol = std::sqrt(EuclidianNormSq(residual));
+    double method_curr_tol = 1e10;
     size_t k = 0;
 
     LOG_INFO_CLI("Iterating SimpleIter...");
@@ -35,17 +35,19 @@ std::vector<double> SimpleIter::eval() {
     double parametr = -2.l/(lambda1+lambdan);
     std::cout<<parametr<<" = parametr "<<lambda1<<"< >"<<lambdan<<"  >"<< config.n<<" >" <<config.m<<std::endl;
     start = std::clock();
-    while (curr_tol >= cfg.tolerance && k < cfg.Max_N) {
+    while (method_curr_tol >= cfg.tolerance && k < cfg.Max_N) {
+        exCfg.prevsol=result;
         VectorSum(result, residual, result, 1.l, parametr);
         MatrixOperate(*matrix, result, residual, cfg.net_widthes);
         VectorSub(*rhs, residual, residual);
+        method_curr_tol = InfNormVector(exCfg.prevsol,result);
         curr_tol = std::sqrt(EuclidianNormSq(residual));
         k++;
-        exCfg.prevsol=exCfg.solution;
-        exCfg.solution=result;
     }
+    exCfg.solution=result;
     exCfg.N=k;
     exCfg.tolerance=curr_tol;
+    exCfg.Methodtolerance=method_curr_tol;
     exCfg.Parametr=parametr;
     duration = static_cast<double>(std::clock() - start) / CLOCKS_PER_SEC;
     LOG_INFO_CLI("SimpleIter finished");

@@ -15,3 +15,5 @@ void VectorSub(const std::vector<double>& x, const std::vector<double>& y, std::
 double InnerProd(const std::vector<double>& x, const std::vector<double>& y);
 
 double EuclidianNormSq(const std::vector<double>& x);
+
+double InfNormVector(const std::vector<double>& x,const std::vector<double>& y);

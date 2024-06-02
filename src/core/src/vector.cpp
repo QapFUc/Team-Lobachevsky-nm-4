@@ -75,3 +75,13 @@ double InnerProd(const std::vector<double>& x, const std::vector<double>& y) {
 double EuclidianNormSq(const std::vector<double>& x) {
     return InnerProd(x, x);
 }
+
+double InfNormVector(const std::vector<double>& x,const std::vector<double>& y) {
+    double res = 0.l;
+    for (size_t k = 0; k < x.size(); ++k) {
+        if (res < std::abs(x[k] - y[k])){
+            res = std::abs(x[k] - y[k]);
+        }
+    }
+    return res;
+}

@@ -169,6 +169,7 @@ void Widget::InitTabTask() {
 
     QObject::connect(SendDatabtn, &QPushButton::clicked, this, &Widget::SendDatabtnClick);
     exitconfig = new ExitConfig();
+    exitconfigdoublestep = new ExitConfig();
     InitDirTask();
 }
 
@@ -177,6 +178,8 @@ void Widget::InitDirTask() {
     Network = new Net();
     NetworkpatternEmpty = (new NetPattern());
     NetworkEmpty = new Net();
+    Networkpatterndoublestep = (new NetPattern());
+    Networkdoublestep = new Net();
     fBound_main = [](const double& x, const double& y, const Config& config) -> double {
         if (x == config.StartXArea) {
             return ((y-2)*(y-3));
@@ -213,11 +216,14 @@ void Widget::InitDirTask() {
     };
 
     DirTask = new DirichletTask(fBound_main, fRHS_main, *Network, config);
+    DirTaskdoublestep = new DirichletTask(fBound_main,fRHS_main,*Networkdoublestep,configdoublestep);
 }
 
 void Widget::UpdateDirTask() {
     config.CountCutX += 1;
     config.CountCutY += 1;
+    configdoublestep.CountCutX +=1;
+    configdoublestep.CountCutY +=1;
     Networkpattern->setMainSpace(config.CountCutX / config.CountCutY);
     *Network = Networkpattern->generateNet(config.CountCutY,
                                            config.StartXArea,
@@ -231,8 +237,16 @@ void Widget::UpdateDirTask() {
                                            config.StartYArea,
                                            (config.EndXArea - config.StartXArea) / (config.CountCutX - 1),
                                            (config.EndYArea - config.StartYArea) / (config.CountCutY - 1));
+    Networkpatterndoublestep->setMainSpace((configdoublestep.CountCutX)/(configdoublestep.CountCutY));
+    *Networkdoublestep = Networkpattern->generateNet(configdoublestep.CountCutY,
+                                           configdoublestep.StartXArea,
+                                           configdoublestep.StartYArea,
+                                           (configdoublestep.EndXArea - configdoublestep.StartXArea) / (configdoublestep.CountCutX  - 1),
+                                           (configdoublestep.EndYArea - configdoublestep.StartYArea) / (configdoublestep.CountCutY  - 1));
     DirTask->SetConfig(config);
-    DirTask->SetNet(*Network);
+    DirTask->SetNet(*Network); 
+    DirTaskdoublestep->SetConfig(configdoublestep);
+    DirTaskdoublestep->SetNet(*Networkdoublestep);
     for (size_t j = 0; j < NetworkEmpty->nodes[0].size(); ++j) {
         for (size_t i = 0; i < NetworkEmpty->nodes.size(); ++i) {
             if (NetworkEmpty->nodes[i][j] == NodeType::BOUND) {
@@ -258,7 +272,7 @@ void Widget::UpdateInfoTest() {
     TestLineEditInfo_5->setText(QString::number(config.Max_N));
     TestLineEditInfo_6->setText(QString::number(exitconfig->N)); // число затрасенных итераций для решения СЛАУ
 
-    TestLineEditInfo_7->setText(QString::number(1)); // точность итерационного метода 
+    TestLineEditInfo_7->setText(QString::number(exitconfig->Methodtolerance)); // точность итерационного метода 
     TestLineEditInfo_8->setText(QString::number(exitconfig->tolerance)); // невязка слау
 
     TestLineEditInfo_9->setText(QString("2 норма")); // норма невязки слау
@@ -277,15 +291,15 @@ void Widget::UpdateInfoMain() {
     MainLineEditInfo_4->setText(QString::number(config.tolerance)); // критерии остановки по точности 
     MainLineEditInfo_5->setText(QString::number(config.Max_N)); // критерии остановки по числу итераций
     MainLineEditInfo_6->setText(QString::number(exitconfig->N)); // затраченное N на решение СЛАУ
-    MainLineEditInfo_7->setText(QString::number(1)); // достигнутая точность итерац метода 
-    MainLineEditInfo_8->setText(QString::number(1)); // невязка решения СЛАУ
+    MainLineEditInfo_7->setText(QString::number(exitconfig->Methodtolerance)); // достигнутая точность итерац метода 
+    MainLineEditInfo_8->setText(QString::number(exitconfig->tolerance)); // невязка решения СЛАУ
     MainLineEditInfo_9->setText(QString("2 норма")); // норма для невязки 
-    MainLineEditInfo_11->setText(QString::number(1)); // параметр МВР с половинным шагом
-    MainLineEditInfo_12->setText(QString::number(1)); // крит остановки по точности на половинном шаге
-    MainLineEditInfo_13->setText(QString::number(1)); // остановка по числу итераций на половинном шаге 
-    MainLineEditInfo_14->setText(QString::number(1)); // затраченное число итераций для решения СЛАУ на полов шаге
-    MainLineEditInfo_15->setText(QString::number(1)); // достигнутая точность на половинном шаге 
-    MainLineEditInfo_16->setText(QString::number(1)); // невязка СЛАУ на половинном шаге
+    MainLineEditInfo_11->setText(QString::number(exitconfigdoublestep->Parametr)); // параметр МВР с половинным шагом
+    MainLineEditInfo_12->setText(QString::number(config.tolerance)); // крит остановки по точности на половинном шаге
+    MainLineEditInfo_13->setText(QString::number(configdoublestep.Max_N)); // остановка по числу итераций на половинном шаге 
+    MainLineEditInfo_14->setText(QString::number(exitconfigdoublestep->N)); // затраченное число итераций для решения СЛАУ на полов шаге
+    MainLineEditInfo_15->setText(QString::number(exitconfigdoublestep->Methodtolerance)); // достигнутая точность на половинном шаге 
+    MainLineEditInfo_16->setText(QString::number(exitconfigdoublestep->tolerance)); // невязка СЛАУ на половинном шаге
     MainLineEditInfo_17->setText("2 норма"); // использованная норма
     MainLineEditInfo_18->setText(QString::number(1)); // точность решения СЛАУ
     MainLineEditInfo_19->setText(QString::number(1)); // макс отклонение в узле - х 
@@ -302,7 +316,16 @@ void Widget::StartSimplexIter() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SimpleIter);
     DirTask->eval();
+
+    DirTaskdoublestep->SetNet(*Networkdoublestep);
+    DirTaskdoublestep->SetBoundary(fBound_main);
+    DirTaskdoublestep->SetRHS(fRHS_main);
+    DirTaskdoublestep->GenerateLinearSystem();
+    DirTaskdoublestep->SetMethod(nm::Method::SimpleIter);
+    DirTaskdoublestep->eval();
+
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfigdoublestep=DirTaskdoublestep->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartCGM() {
@@ -312,7 +335,16 @@ void Widget::StartCGM() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
+
+    DirTaskdoublestep->SetNet(*Networkdoublestep);
+    DirTaskdoublestep->SetBoundary(fBound_main);
+    DirTaskdoublestep->SetRHS(fRHS_main);
+    DirTaskdoublestep->GenerateLinearSystem();
+    DirTaskdoublestep->SetMethod(nm::Method::CGM);
+    DirTaskdoublestep->eval();
+
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfigdoublestep=DirTaskdoublestep->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartCGMEmptyArea() {
@@ -323,6 +355,7 @@ void Widget::StartCGMEmptyArea() {
     DirTask->SetMethod(nm::Method::CGM);
     DirTask->eval();
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfigdoublestep=DirTaskdoublestep->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartSOR() {
@@ -332,7 +365,16 @@ void Widget::StartSOR() {
     DirTask->GenerateLinearSystem();
     DirTask->SetMethod(nm::Method::SOR);
     DirTask->eval();
+
+    DirTaskdoublestep->SetNet(*Networkdoublestep);
+    DirTaskdoublestep->SetBoundary(fBound_main);
+    DirTaskdoublestep->SetRHS(fRHS_main);
+    DirTaskdoublestep->GenerateLinearSystem();
+    DirTaskdoublestep->SetMethod(nm::Method::SOR);
+    DirTaskdoublestep->eval();
+
     *exitconfig=DirTask->GetMethod()->GetExitConfig();
+    *exitconfigdoublestep=DirTaskdoublestep->GetMethod()->GetExitConfig();
 }
 
 void Widget::StartTestCGM() {
@@ -373,6 +415,17 @@ void Widget::SendDatabtnClick() {
                     (InputN->text()).toDouble(),
                     (InputM->text()).toDouble(),
                     (InputMaxStep->text()).toDouble(),
+                    InputTask->currentIndex(),
+                    InputOmega->text().toDouble(),
+                    static_cast<nm::StartApr>(InputStartx->currentIndex() - 1),
+                    (InputEps->text()).toDouble());
+    configdoublestep = Config((InputStartXArea->text()).toDouble(),
+                    (InputEndXArea->text()).toDouble(),
+                    (InputStartYArea->text()).toDouble(),
+                    (InputEndYArea->text()).toDouble(),
+                    (InputN->text()).toDouble()*2,
+                    (InputM->text()).toDouble()*2,
+                    (InputMaxStep->text()).toDouble()*6,
                     InputTask->currentIndex(),
                     InputOmega->text().toDouble(),
                     static_cast<nm::StartApr>(InputStartx->currentIndex() - 1),
@@ -500,13 +553,13 @@ void Widget::UpdateTableTest() {
 
     for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(col * stepx));
+        headerItem->setText(QString::number(col * stepx+config.StartXArea));
         TableTest_1->setHorizontalHeaderItem(col, headerItem);
     }
     TableTest_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     for (int row = 0; row < config.CountCutY; ++row) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
-        headerItem->setText(QString::number(row * stepy));
+        headerItem->setText(QString::number(row * stepy+config.StartYArea));
         TableTest_1->setVerticalHeaderItem(row, headerItem);
     }
 
@@ -609,10 +662,18 @@ void Widget::InitTableMain() {
     MainTableLayout = new QVBoxLayout();
 
     tabTableMain->setLayout(MainTableLayout);
+    QVBoxLayout* MainLayout_1 = new QVBoxLayout();
+    QLabel* MainLabel_1 = new QLabel("Численное решение v(N)(x, y) в узлах сетки c двойным шагом", tabTableTest);
+    MainLayout_1->addWidget(MainLabel_1);
+    TableMain_1 = new QTableWidget();
+    MainLayout_1->addWidget(TableMain_1);
+    MainTableLayout->addLayout(MainLayout_1);
+
+    // 2 table
 
     QVBoxLayout* MainLayout_2 = new QVBoxLayout();
 
-    QLabel* MainLabel_2 = new QLabel("Численное решение v(N)(x, y) в узлах сетки", tabTableTest);
+    QLabel* MainLabel_2 = new QLabel("Численное решение v(N)(x, y) в узлах сетки c одинарным шагом", tabTableTest);
 
     MainLayout_2->addWidget(MainLabel_2);
 
@@ -621,12 +682,56 @@ void Widget::InitTableMain() {
     MainLayout_2->addWidget(TableMain_2);
 
     MainTableLayout->addLayout(MainLayout_2);
+
+    // table 3
+
+    QVBoxLayout* MainLayout_3 = new QVBoxLayout();
+
+    QLabel* MainLabel_3 = new QLabel("Разность численного и численного с двйоным шагом в узлах сетки", tabTableTest);
+
+    MainLayout_3->addWidget(MainLabel_3);
+
+    TableMain_3 = new QTableWidget();
+    MainLayout_3->addWidget(TableMain_3);
+
+    MainTableLayout->addLayout(MainLayout_3);
 }
 
 void Widget::UpdateTableMain() {
     std::cout << "start upd" << std::endl;
     double stepx = Network->step_x;
     double stepy = Network->step_y;
+    double stpexdouble = Networkdoublestep->step_x;
+    double stpeydouble = Networkdoublestep->step_y;
+
+    // Numeric solve
+    TableMain_1->setColumnCount(configdoublestep.CountCutX);
+    TableMain_1->setRowCount(configdoublestep.CountCutY);
+    for (size_t row = 0; row < configdoublestep.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < configdoublestep.CountCutX; ++l) {
+            if (Networkdoublestep->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < configdoublestep.CountCutX; ++col) {
+            if (Networkdoublestep->nodes[col][row] != NodeType::OUT) {
+                double x = col * stpexdouble+configdoublestep.StartXArea;
+                double y = row * stpeydouble+configdoublestep.StartYArea;
+                double val = 0.l;
+
+                if (Networkdoublestep->nodes[col][row] == NodeType::BOUND) {
+                    val = DirTaskdoublestep->Boundary(x, y);
+                    biasX += 1;
+                } else if (Networkdoublestep->nodes[col][row] == NodeType::INNER) {
+                    val = DirTaskdoublestep->Solution()[(col - biasX) + (row - 1) * (Networkdoublestep->nodes.size() - BordersInRow)];
+                }
+
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
+                TableMain_1->setItem(row, col, item);
+            }
+        }
+    }
 
     // Numeric solve
     TableMain_2->setColumnCount(config.CountCutX);
@@ -656,6 +761,50 @@ void Widget::UpdateTableMain() {
             }
         }
     }
+
+    TableMain_3->setColumnCount(config.CountCutX);
+    TableMain_3->setRowCount(config.CountCutY);
+    for (size_t row = 0; row < config.CountCutY; ++row) {
+        size_t BordersInRow = 0;
+        size_t biasX = 0;
+        for (size_t l = 0; l < configdoublestep.CountCutX; ++l) {
+            if (Networkdoublestep->nodes[l][row] == NodeType::BOUND)
+                BordersInRow += 1;
+        }
+        for (size_t col = 0; col < configdoublestep.CountCutX; ++col) {
+            if (Networkdoublestep->nodes[col][row] != NodeType::OUT) {
+                double xd = col * stpexdouble+configdoublestep.StartXArea;
+                double yd = row * stpeydouble+configdoublestep.StartYArea;
+                double x = col/2 * stepx+config.StartXArea;
+                double y = row/2 * stepy+config.StartYArea;
+                double val = 0.l;
+
+                if (Networkdoublestep->nodes[col][row] == NodeType::BOUND) {
+                    val = std::abs(DirTaskdoublestep->Boundary(xd, yd)-DirTask->Boundary(x, y));
+                    biasX += 1;
+                } else if (Networkdoublestep->nodes[col][row] == NodeType::INNER) {
+                    val = std::abs(DirTaskdoublestep->Solution()[(col - biasX) + (row - 1) * (Networkdoublestep->nodes.size() - BordersInRow)]-DirTask->Solution()[(col - biasX) + (row - 1) * (Network->nodes.size() - BordersInRow)]);
+                }
+                if ((x==xd) && (y==yd)) {
+                QTableWidgetItem* item = new QTableWidgetItem(QString("%1").arg(val));
+                TableMain_3->setItem(row/2, col/2, item);
+                }
+            }
+        }
+    }
+
+    for (int col = 0; col < configdoublestep.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + col * stpexdouble));
+        TableMain_1->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableMain_1->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < configdoublestep.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + row * stpeydouble));
+        TableMain_1->setVerticalHeaderItem(row, headerItem);
+    }
+
     for (int col = 0; col < config.CountCutX; ++col) {
         QTableWidgetItem* headerItem = new QTableWidgetItem();
         headerItem->setText(QString::number(config.StartXArea + col * stepx));
@@ -668,8 +817,24 @@ void Widget::UpdateTableMain() {
         TableMain_2->setVerticalHeaderItem(row, headerItem);
     }
 
+    for (int col = 0; col < config.CountCutX; ++col) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + col * stepx));
+        TableMain_3->setHorizontalHeaderItem(col, headerItem);
+    }
+    TableMain_3->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    for (int row = 0; row < config.CountCutY; ++row) {
+        QTableWidgetItem* headerItem = new QTableWidgetItem();
+        headerItem->setText(QString::number(config.StartXArea + row * stepy));
+        TableMain_3->setVerticalHeaderItem(row, headerItem);
+    }
+
+    TableMain_1->resizeColumnsToContents();
+    TableMain_1->resizeRowsToContents();
     TableMain_2->resizeColumnsToContents();
     TableMain_2->resizeRowsToContents();
+    TableMain_3->resizeColumnsToContents();
+    TableMain_3->resizeRowsToContents();
 
 }
 
